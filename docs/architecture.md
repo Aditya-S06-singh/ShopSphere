@@ -35,3 +35,4 @@ ShopSphere is an AI-powered e-commerce platform engineered as a portfolio-qualit
 5. **Milestone 5:** Admin Dashboard & Management Console
 6. **Milestone 6:** AI Semantic Search & Contextual RAG Shopping Assistant
 7. **Milestone 7:** Testing, Documentation, Docker Deployment & Portfolio Packaging
+

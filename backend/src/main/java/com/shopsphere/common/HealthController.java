@@ -52,3 +52,4 @@ public class HealthController {
         return ResponseEntity.status(httpStatus).body(response);
     }
 }
+

@@ -68,9 +68,17 @@ Open `http://localhost:5173` in your browser.
   - PostgreSQL 18 connection setup and health probe REST API.
   - React + TypeScript + Vite + Tailwind CSS dashboard with live heartbeat monitoring.
   - Automated tests passing.
-- [ ] **Milestone 2**: Authentication & Role-Based Authorization (JWT + BCrypt)
+- [x] **Milestone 2**: Authentication & Role-Based Authorization (JWT + BCrypt)
+  - Spring Security 6 stateless filter chain with `JwtAuthenticationFilter`.
+  - BCrypt password encryption and HMAC-SHA256 signed JWT tokens.
+  - User domain entity with roles (`ROLE_CUSTOMER`, `ROLE_ADMIN`).
+  - Auth REST endpoints: `register`, `login`, and authenticated `me`.
+  - Global exception handling for duplicate emails (409), bad credentials (401), and validation errors (400).
+  - Seeded demo customer and admin accounts with 1-click frontend autofill.
+  - Full suite of 9 JUnit/MockMvc integration tests passing.
 - [ ] **Milestone 3**: Product Catalog & Inventory Management
 - [ ] **Milestone 4**: Shopping Cart & Simulated Payment Checkout
 - [ ] **Milestone 5**: Admin Dashboard & Order Management
 - [ ] **Milestone 6**: AI Semantic Search & RAG Assistant
 - [ ] **Milestone 7**: Testing, Production Docker Packaging & Final Portfolio Review
+

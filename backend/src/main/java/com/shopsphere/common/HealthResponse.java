@@ -11,3 +11,4 @@ public record HealthResponse(
         Map<String, Object> details
 ) {
 }
+

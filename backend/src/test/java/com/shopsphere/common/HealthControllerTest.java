@@ -28,3 +28,4 @@ class HealthControllerTest {
                 .andExpect(jsonPath("$.details.database").value("CONNECTED"));
     }
 }
+

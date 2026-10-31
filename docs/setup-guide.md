@@ -45,3 +45,4 @@ npm.cmd run dev
 ```
 Open your browser to `http://localhost:5173`.
 The frontend will immediately query `/api/v1/health` and display full-stack connectivity status.
+

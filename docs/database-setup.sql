@@ -24,3 +24,4 @@ WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'shopsphere_db')\gexec
 GRANT ALL ON SCHEMA public TO shopsphere_user;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO shopsphere_user;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO shopsphere_user;
+

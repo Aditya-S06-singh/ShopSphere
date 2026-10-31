@@ -12,3 +12,4 @@ class ShopSphereApplicationTests {
     void contextLoads() {
     }
 }
+
