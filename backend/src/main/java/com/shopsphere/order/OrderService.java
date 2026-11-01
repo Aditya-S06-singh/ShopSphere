@@ -43,8 +43,6 @@ public class OrderService {
         this.paymentService = paymentService;
     }
 
-    // ─── Place order ────────────────────────────────────────────────────────────
-
     @Transactional
     public OrderDto placeOrder(Long userId, CheckoutRequest request) {
         User user = userRepository.findById(userId)
@@ -56,7 +54,6 @@ public class OrderService {
             throw new IllegalStateException("Cannot checkout with an empty cart.");
         }
 
-        // 1. Stock validation
         for (CartItem item : cart.getItems()) {
             Product product = item.getProduct();
             if (!product.isActive()) {
@@ -69,15 +66,12 @@ public class OrderService {
             }
         }
 
-        // 2. Calculate total
         BigDecimal total = cart.getItems().stream()
                 .map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // 3. Simulated payment
         String paymentRef = paymentService.processPayment(request.testPaymentToken(), total);
 
-        // 4. Build Order
         Order order = new Order();
         order.setOrderNumber(generateOrderNumber());
         order.setUser(user);
@@ -86,7 +80,6 @@ public class OrderService {
         order.setShippingAddress(request.shippingAddress());
         order.setPaymentReference(paymentRef);
 
-        // 5. Build OrderItems + decrement stock
         for (CartItem cartItem : cart.getItems()) {
             Product product = cartItem.getProduct();
 
@@ -140,8 +133,6 @@ public class OrderService {
         return toDto(order);
     }
 
-    // ─── User Cancel Order ──────────────────────────────────────────────────────
-
     @Transactional
     public OrderDto cancelOrder(Long userId, Long orderId) {
         Order order = orderRepository.findByIdWithItems(orderId)
@@ -170,8 +161,6 @@ public class OrderService {
         Order saved = orderRepository.save(order);
         return toDto(saved);
     }
-
-    // ─── Admin Order Management ─────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
     public PagedResponse<OrderDto> getAllOrdersForAdmin(OrderStatus status, Pageable pageable) {
@@ -236,8 +225,6 @@ public class OrderService {
         Order saved = orderRepository.save(order);
         return toDto(saved);
     }
-
-    // ─── Admin Dashboard Stats ──────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
     public DashboardStatsDto getDashboardStats() {

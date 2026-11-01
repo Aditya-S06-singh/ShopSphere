@@ -29,15 +29,11 @@ public class CartService {
         this.userRepository = userRepository;
     }
 
-    // ─── Get cart ──────────────────────────────────────────────────────────────
-
     @Transactional(readOnly = true)
     public CartDto getCartDto(Long userId) {
         Cart cart = getOrCreateCart(userId);
         return toDto(cart);
     }
-
-    // ─── Add item ──────────────────────────────────────────────────────────────
 
     public CartDto addItem(Long userId, Long productId, int quantity) {
         Product product = productRepository.findById(productId)
@@ -75,8 +71,6 @@ public class CartService {
         return toDto(refreshed);
     }
 
-    // ─── Update quantity ────────────────────────────────────────────────────────
-
     public CartDto updateItemQuantity(Long userId, Long cartItemId, int quantity) {
         CartItem item = cartItemRepository.findById(cartItemId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart item not found: " + cartItemId));
@@ -99,8 +93,6 @@ public class CartService {
         return toDto(refreshed);
     }
 
-    // ─── Remove item ────────────────────────────────────────────────────────────
-
     public CartDto removeItem(Long userId, Long cartItemId) {
         CartItem item = cartItemRepository.findById(cartItemId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart item not found: " + cartItemId));
@@ -115,8 +107,6 @@ public class CartService {
         return toDto(refreshed);
     }
 
-    // ─── Clear cart ─────────────────────────────────────────────────────────────
-
     public void clearCart(Long userId) {
         cartRepository.findByUserId(userId).ifPresent(cart -> {
             cart.getItems().clear();
@@ -124,12 +114,6 @@ public class CartService {
         });
     }
 
-    // ─── Internal helpers ───────────────────────────────────────────────────────
-
-    /**
-     * Finds the user's cart or creates one if it doesn't exist yet.
-     * "Get or create" is a common pattern for user-owned singleton resources.
-     */
     public Cart getOrCreateCart(Long userId) {
         return cartRepository.findByUserIdWithItems(userId).orElseGet(() -> {
             User user = userRepository.findById(userId)

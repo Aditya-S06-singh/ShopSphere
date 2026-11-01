@@ -205,23 +205,22 @@ function DashboardContent() {
               <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400">
                 ShopSphere
               </span>
-              <span className="ml-2 text-xs font-mono uppercase px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                AI Powered
-              </span>
             </div>
           </div>
 
           {/* Quick Controls */}
           <div className="flex items-center space-x-3">
-            {/* System Health Toggle */}
-            <button
-              onClick={() => setShowHealthCard(!showHealthCard)}
-              title="System Diagnostics"
-              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition-colors border border-slate-700 hidden sm:flex items-center space-x-1.5 text-xs font-mono"
-            >
-              <Server className="w-3.5 h-3.5 text-indigo-400" />
-              <span>{health?.status === 'UP' ? 'System 200' : 'Diagnostics'}</span>
-            </button>
+            {/* Admin Diagnostics Toggle */}
+            {isAdmin && (
+              <button
+                onClick={() => setShowHealthCard(!showHealthCard)}
+                title="System Diagnostics"
+                className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition-colors border border-slate-700 hidden sm:flex items-center space-x-1.5 text-xs font-mono"
+              >
+                <Server className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Diagnostics</span>
+              </button>
+            )}
 
             {/* My Orders Button */}
             {isAuthenticated && (
@@ -382,14 +381,13 @@ function DashboardContent() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-medium">
             <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-spin" style={{ animationDuration: '4s' }} />
-            <span>Milestone 6: AI Semantic Search & RAG Shopping Assistant Active</span>
+            <span>AI-Assisted Catalog Discovery & Concierge</span>
           </div>
           <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white max-w-3xl mx-auto">
-            Portfolio-Quality E-Commerce Platform
+            Premium Workstation & Acoustics
           </h1>
           <p className="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-            Engineered with Spring Boot 3.4 on JDK 27, PostgreSQL 18, React 18, Tailwind CSS, 
-            stateless JWT security, and simulated card authorization.
+            Engineered audio, ergonomic peripherals, and smart accessories curated for developers, creators, and professionals.
           </p>
         </div>
       </section>

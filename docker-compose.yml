@@ -1,9 +1,8 @@
 version: "3.9"
 
 services:
-  # ── PostgreSQL ───────────────────────────────────────────────────────────────
   postgres:
-    image: postgres:16-alpine          # 16-alpine is widely available; swap for 18 when stable image ships
+    image: postgres:16-alpine
     container_name: shopsphere-postgres
     restart: unless-stopped
     environment:
@@ -20,7 +19,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # ── Backend (Spring Boot) ────────────────────────────────────────────────────
   backend:
     build:
       context: ./backend
@@ -35,10 +33,10 @@ services:
       SPRING_DATASOURCE_USERNAME: ${DB_USER:-shopsphere}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-shopsphere_secret}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      APP_JWT_SECRET: ${JWT_SECRET:-change-me-in-production-use-a-long-random-string}
+      APP_JWT_SECRET: ${JWT_SECRET:-404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
       APP_JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
       APP_AI_GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      APP_AI_GEMINI_MODEL: ${GEMINI_MODEL:-gemini-1.5-flash}
+      APP_AI_GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.8-flash}
     ports:
       - "8080:8080"
     healthcheck:
@@ -47,7 +45,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # ── Frontend (React → Nginx) ─────────────────────────────────────────────────
   frontend:
     build:
       context: ./frontend

@@ -84,7 +84,6 @@ public class RagShoppingService {
     public AiChatResponse chatWithAssistant(AiChatRequest request) {
         String query = request.message().trim();
 
-        // 1. Retrieve candidate products
         List<Product> allProducts = productRepository.findAll();
         List<SemanticVectorEngine.ScoredProduct> ranked = vectorEngine.rankProducts(allProducts, query, 4);
 
@@ -92,7 +91,6 @@ public class RagShoppingService {
                 .map(r -> ProductDto.fromEntity(r.product()))
                 .toList();
 
-        // 2. Generate with Gemini LLM if key is present
         if (geminiApiKey != null && !geminiApiKey.isBlank()) {
             try {
                 String llmReply = callGeminiLlm(query, ranked, request.history());
@@ -105,7 +103,6 @@ public class RagShoppingService {
             }
         }
 
-        // 3. Built-in Deterministic RAG Concierge (zero-dependency, always works)
         String localReply = generateLocalRagResponse(query, ranked);
         return new AiChatResponse(localReply, recommendedDtos, "LOCAL_RAG_CONCIERGE");
     }
