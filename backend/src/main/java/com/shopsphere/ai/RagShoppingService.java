@@ -6,6 +6,8 @@ import com.shopsphere.ai.dto.*;
 import com.shopsphere.product.Product;
 import com.shopsphere.product.ProductRepository;
 import com.shopsphere.product.dto.ProductDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,8 @@ import java.util.Map;
 
 @Service
 public class RagShoppingService {
+
+    private static final Logger log = LoggerFactory.getLogger(RagShoppingService.class);
 
     private final ProductRepository productRepository;
     private final SemanticVectorEngine vectorEngine;
@@ -81,10 +85,11 @@ public class RagShoppingService {
             try {
                 String llmReply = callGeminiLlm(query, ranked, request.history());
                 if (llmReply != null && !llmReply.isBlank()) {
+                    log.info("Successfully generated AI response via Google Gemini API ({})", geminiModel);
                     return new AiChatResponse(llmReply, recommendedDtos, "GEMINI_LLM");
                 }
             } catch (Exception e) {
-                // Graceful fallback to built-in concierge on network or rate limit errors
+                log.warn("Gemini API call failed: {}. Falling back to local RAG concierge.", e.getMessage());
             }
         }
 
@@ -183,3 +188,4 @@ public class RagShoppingService {
         return sb.toString();
     }
 }
+
