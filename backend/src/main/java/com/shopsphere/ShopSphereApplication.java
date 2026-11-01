@@ -39,12 +39,13 @@ public class ShopSphereApplication {
                         if (eq > 0) {
                             String key = trimmed.substring(0, eq).trim();
                             String val = trimmed.substring(eq + 1).trim();
-                            if (System.getProperty(key) == null && System.getenv(key) == null) {
-                                System.setProperty(key, val);
-                            }
+                            System.setProperty(key, val);
                         }
                     }
-                    System.out.println("[ShopSphere] Auto-detected local .env file from: " + path.normalize().toAbsolutePath());
+                    String model = System.getProperty("GEMINI_MODEL", "gemini-2.5-flash");
+                    String hasKey = System.getProperty("GEMINI_API_KEY") != null && !System.getProperty("GEMINI_API_KEY").isBlank() ? "YES" : "NO";
+                    System.out.println("[ShopSphere] Auto-detected local .env file from: " + path.normalize().toAbsolutePath()
+                            + " | Model: " + model + " | Has Key: " + hasKey);
                     return;
                 } catch (Exception ignored) {
                 }

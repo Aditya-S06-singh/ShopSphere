@@ -8,3 +8,4 @@ public record AiSearchResultDto(
         String matchReason
 ) {
 }
+

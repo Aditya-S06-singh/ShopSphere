@@ -4,6 +4,33 @@ All notable changes to the ShopSphere platform are documented in this file by mi
 
 ---
 
+## [Milestone 7] - 2026-11-01
+### Production Docker Packaging & Final Portfolio Review
+
+#### Infrastructure
+- **`backend/Dockerfile`** — Multi-stage build:
+  - Stage 1 (`maven:3.9.6-eclipse-temurin-21`): resolves dependencies offline then packages JAR with `-DskipTests`.
+  - Stage 2 (`eclipse-temurin:21-jre-alpine`): minimal JRE runtime; drops to non-root `shopsphere` user for security; exposes port 8080.
+- **`frontend/Dockerfile`** — Multi-stage build:
+  - Stage 1 (`node:20-alpine`): runs `npm ci && npm run build` producing optimised `dist/`.
+  - Stage 2 (`nginx:alpine`): serves static assets; mounts custom `nginx.conf`.
+- **`frontend/nginx.conf`**:
+  - SPA fallback: all unknown paths return `index.html`.
+  - `/api/` reverse proxy to `http://backend:8080` with forwarded headers.
+  - Static asset cache headers (`1y`, `immutable`).
+  - Gzip enabled for JS, CSS, JSON.
+- **`docker-compose.yml`** (project root):
+  - `postgres` service (`postgres:16-alpine`) with volume-backed persistence and `pg_isready` health check.
+  - `backend` service depends on healthy postgres; receives all secrets as environment variables from `.env`.
+  - `frontend` service depends on healthy backend; exposed on port 3000.
+  - Named volume `postgres_data` for data durability across container restarts.
+
+#### Documentation
+- `README.md` updated: Docker quickstart added as primary recommended path; local dev quickstart retained; Milestone 7 marked complete.
+- `CHANGELOG.md` updated with this entry.
+
+---
+
 ## [Milestone 6] - 2026-11-01
 ### AI Semantic Search & RAG Shopping Assistant
 

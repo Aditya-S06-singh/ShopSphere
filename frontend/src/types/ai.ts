@@ -29,3 +29,4 @@ export interface AiChatResponse {
   recommendedProducts: Product[];
   source: string;
 }
+

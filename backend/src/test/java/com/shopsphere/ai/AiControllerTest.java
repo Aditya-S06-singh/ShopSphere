@@ -114,3 +114,4 @@ class AiControllerTest {
                 .andExpect(jsonPath("$.recommendedProducts").isEmpty());
     }
 }
+

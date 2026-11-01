@@ -25,13 +25,13 @@ public class RagShoppingService {
 
     private final ProductRepository productRepository;
     private final SemanticVectorEngine vectorEngine;
-    private final RestClient restClient;
     private final ObjectMapper objectMapper;
+    private volatile RestClient restClient;
 
     @Value("${app.ai.gemini-api-key:}")
     private String geminiApiKey;
 
-    @Value("${app.ai.gemini-model:gemini-1.5-flash}")
+    @Value("${app.ai.gemini-model:gemini-3.8-flash}")
     private String geminiModel;
 
     public RagShoppingService(
@@ -42,7 +42,19 @@ public class RagShoppingService {
         this.productRepository = productRepository;
         this.vectorEngine = vectorEngine;
         this.objectMapper = objectMapper;
-        this.restClient = RestClient.builder().build();
+    }
+
+    private RestClient getRestClient() {
+        if (this.restClient == null) {
+            synchronized (this) {
+                if (this.restClient == null) {
+                    this.restClient = RestClient.builder()
+                            .requestFactory(new org.springframework.http.client.SimpleClientHttpRequestFactory())
+                            .build();
+                }
+            }
+        }
+        return this.restClient;
     }
 
     /**
@@ -103,7 +115,15 @@ public class RagShoppingService {
             List<SemanticVectorEngine.ScoredProduct> ranked,
             List<ChatMessageDto> history
     ) throws Exception {
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/" + geminiModel + ":generateContent?key=" + geminiApiKey;
+        List<String> candidateModels = new ArrayList<>();
+        if (geminiModel != null && !geminiModel.isBlank()) {
+            candidateModels.add(geminiModel.trim());
+        }
+        for (String m : List.of("gemini-3.8-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite")) {
+            if (!candidateModels.contains(m)) {
+                candidateModels.add(m);
+            }
+        }
 
         StringBuilder contextBuilder = new StringBuilder();
         contextBuilder.append("You are SphereAI, the helpful, polite, and knowledgeable AI shopping assistant for ShopSphere.\n");
@@ -135,17 +155,35 @@ public class RagShoppingService {
                 )
         );
 
-        String jsonResponse = restClient.post()
-                .uri(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(body)
-                .retrieve()
-                .body(String.class);
+        Exception lastException = null;
+        for (String model : candidateModels) {
+            String url = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + geminiApiKey;
+            try {
+                String jsonResponse = getRestClient().post()
+                        .uri(url)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(body)
+                        .retrieve()
+                        .body(String.class);
 
-        JsonNode root = objectMapper.readTree(jsonResponse);
-        return root.path("candidates").get(0)
-                .path("content").path("parts").get(0)
-                .path("text").asText();
+                JsonNode root = objectMapper.readTree(jsonResponse);
+                String reply = root.path("candidates").get(0)
+                        .path("content").path("parts").get(0)
+                        .path("text").asText();
+                if (reply != null && !reply.isBlank()) {
+                    log.info("Successfully generated AI response via Google Gemini API ({})", model);
+                    return reply;
+                }
+            } catch (Exception ex) {
+                lastException = ex;
+                log.warn("Gemini model {} failed: {}", model, ex.getMessage());
+            }
+        }
+
+        if (lastException != null) {
+            throw lastException;
+        }
+        return null;
     }
 
     private String generateLocalRagResponse(

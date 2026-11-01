@@ -34,7 +34,33 @@ ShopSphere/
 
 ---
 
-## Quickstart
+## Docker Quickstart (Recommended)
+
+> Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) with WSL2 backend.
+
+```bash
+# 1. Clone the repo (if you haven't already)
+git clone https://github.com/<you>/ShopSphere.git
+cd ShopSphere
+
+# 2. Configure secrets
+cp .env.example .env
+# Edit .env — set DB_PASSWORD, JWT_SECRET, and optionally GEMINI_API_KEY
+
+# 3. Build & run everything
+docker compose up --build
+```
+
+| Service | URL |
+|---|---|
+| Frontend (React) | http://localhost:3000 |
+| Backend API | http://localhost:8080/api/v1/health |
+
+Stop: `docker compose down` &nbsp;·&nbsp; Wipe data: `docker compose down -v`
+
+---
+
+## Local Development Quickstart
 
 ### 1. Database Provisioning
 Run the SQL script located in `docs/database-setup.sql` on your PostgreSQL 18 instance:
@@ -110,5 +136,11 @@ Open `http://localhost:5173` in your browser.
   - Interactive React AI UI: Floating "Ask SphereAI" concierge drawer with quick prompt chips, markdown parsing, and embedded product cards with 1-click cart insertion.
   - Main catalog "AI Semantic Search" toggle with live match % and semantic rationale pills.
   - 40 backend integration tests passing (100% success rate).
-- [ ] **Milestone 7**: Testing, Production Docker Packaging & Final Portfolio Review
+- [x] **Milestone 7**: Production Docker Packaging & Final Portfolio Review
+  - Multi-stage Docker builds for backend (Maven → JRE Alpine) and frontend (Node → Nginx Alpine).
+  - `docker-compose.yml` orchestrating PostgreSQL 16-Alpine, Spring Boot backend, and React/Nginx frontend.
+  - Nginx reverse proxy with SPA fallback routing and API proxy to backend container.
+  - Docker health checks ensuring backend waits for healthy database before starting.
+  - Frontend served on port 3000, backend on port 8080; all secrets injected via `.env`.
+  - One-command deployment: `docker compose up --build`.
 

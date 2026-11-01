@@ -1,0 +1,65 @@
+version: "3.9"
+
+services:
+  # ── PostgreSQL ───────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine          # 16-alpine is widely available; swap for 18 when stable image ships
+    container_name: shopsphere-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-shopsphere}
+      POSTGRES_USER: ${DB_USER:-shopsphere}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-shopsphere_secret}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-shopsphere} -d ${DB_NAME:-shopsphere}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Backend (Spring Boot) ────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: shopsphere-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-shopsphere}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-shopsphere}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-shopsphere_secret}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      APP_JWT_SECRET: ${JWT_SECRET:-change-me-in-production-use-a-long-random-string}
+      APP_JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
+      APP_AI_GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      APP_AI_GEMINI_MODEL: ${GEMINI_MODEL:-gemini-1.5-flash}
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/api/v1/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ── Frontend (React → Nginx) ─────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: shopsphere-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "3000:80"
+
+volumes:
+  postgres_data:
+

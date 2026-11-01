@@ -8,3 +8,4 @@ public record AiSearchResponse(
         List<AiSearchResultDto> results
 ) {
 }
+
