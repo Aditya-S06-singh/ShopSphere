@@ -63,7 +63,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             </h2>
 
             <div className="text-2xl font-extrabold text-white">
-              ${Number(product.price).toFixed(2)}
+              Rs. {Number(product.price).toFixed(2)}
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed max-h-48 overflow-y-auto pr-1">

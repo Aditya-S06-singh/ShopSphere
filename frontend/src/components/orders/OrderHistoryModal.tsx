@@ -144,7 +144,7 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({ isOpen, on
                         {item.quantity}x {item.productName} ({item.productSku})
                       </span>
                       <span className="font-semibold text-gray-800">
-                        ${item.lineTotal.toFixed(2)}
+                        Rs. {item.lineTotal.toFixed(2)}
                       </span>
                     </div>
                   ))}
@@ -159,7 +159,7 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({ isOpen, on
                   </div>
                   <div className="flex items-center space-x-4">
                     <span className="font-bold text-sm text-gray-900">
-                      Total: ${order.totalAmount.toFixed(2)}
+                      Total: Rs. {order.totalAmount.toFixed(2)}
                     </span>
                     {(order.status === 'PENDING' || order.status === 'PAYMENT_CONFIRMED') && (
                       <button

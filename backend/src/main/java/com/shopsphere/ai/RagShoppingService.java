@@ -132,7 +132,7 @@ public class RagShoppingService {
             for (var rp : ranked) {
                 Product p = rp.product();
                 contextBuilder.append(String.format(
-                        "- %s (SKU: %s): Price $%.2f, Stock: %d. Description: %s\n",
+                        "- %s (SKU: %s): Price Rs. %.2f, Stock: %d. Description: %s\n",
                         p.getName(), p.getSku(), p.getPrice(), p.getStockQuantity(), p.getDescription()
                 ));
             }
@@ -205,7 +205,7 @@ public class RagShoppingService {
             String reason = ranked.get(i).matchReason();
 
             sb.append(String.format(
-                    "**%d. %s** — **$%.2f**\n",
+                    "**%d. %s** — **Rs. %.2f**\n",
                     i + 1, p.getName(), p.getPrice()
             ));
 

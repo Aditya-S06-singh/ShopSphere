@@ -82,7 +82,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       <p className="text-xs text-gray-500 mt-0.5">SKU: {item.productSku}</p>
                       <div className="flex items-center justify-between mt-3">
                         <span className="text-sm font-bold text-indigo-600">
-                          ${item.unitPrice.toFixed(2)}
+                          Rs. {item.unitPrice.toFixed(2)}
                         </span>
                         <div className="flex items-center space-x-1.5 bg-white border border-gray-200 rounded-lg px-1.5 py-0.5">
                           <button
@@ -117,7 +117,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               <div className="flex justify-between items-baseline">
                 <span className="text-sm text-gray-500">Subtotal</span>
                 <span className="text-xl font-bold text-gray-900">
-                  ${cart.subtotal.toFixed(2)}
+                  Rs. {cart.subtotal.toFixed(2)}
                 </span>
               </div>
               <p className="text-xs text-gray-400">

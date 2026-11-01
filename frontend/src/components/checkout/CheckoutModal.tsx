@@ -89,7 +89,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           <div className="bg-gray-50 p-4 rounded-xl space-y-2 border border-gray-100">
             <div className="flex justify-between text-xs text-gray-500">
               <span>Items Total ({cart.totalItems})</span>
-              <span>${cart.subtotal.toFixed(2)}</span>
+              <span>Rs. {cart.subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-xs text-gray-500">
               <span>Shipping (Simulated)</span>
@@ -97,7 +97,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </div>
             <div className="border-t border-gray-200 pt-2 flex justify-between font-bold text-gray-900 text-sm">
               <span>Total Due</span>
-              <span className="text-indigo-600 text-base">${cart.subtotal.toFixed(2)}</span>
+              <span className="text-indigo-600 text-base">Rs. {cart.subtotal.toFixed(2)}</span>
             </div>
           </div>
 

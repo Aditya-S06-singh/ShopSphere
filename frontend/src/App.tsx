@@ -353,7 +353,7 @@ function DashboardContent() {
           <div className="max-w-7xl mx-auto flex items-center justify-between text-xs sm:text-sm">
             <div className="flex items-center space-x-2 text-emerald-400 font-medium">
               <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-              <span>Order <strong>{lastPlacedOrder.orderNumber}</strong> placed successfully! Total: ${lastPlacedOrder.totalAmount.toFixed(2)}</span>
+              <span>Order <strong>{lastPlacedOrder.orderNumber}</strong> placed successfully! Total: Rs. {lastPlacedOrder.totalAmount.toFixed(2)}</span>
             </div>
             <div className="flex items-center space-x-3">
               <button
@@ -401,7 +401,7 @@ function DashboardContent() {
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder={aiSearchEnabled ? "Describe what you need in natural language (e.g., 'ergonomic typing gear under $100')..." : "Search products by title, SKU, or keyword..."}
+              placeholder={aiSearchEnabled ? "Describe what you need in natural language (e.g., 'ergonomic typing gear under Rs. 5000')..." : "Search products by title, SKU, or keyword..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className={`w-full bg-slate-900/80 border rounded-xl pl-10 pr-4 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 transition-all ${

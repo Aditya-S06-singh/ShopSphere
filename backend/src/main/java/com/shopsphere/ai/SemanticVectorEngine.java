@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 public class SemanticVectorEngine {
 
     private static final Pattern PRICE_UNDER_PATTERN =
-            Pattern.compile("(?:under|below|less than|max|up to|within)\\s*\\$?([0-9]+(?:\\.[0-9]{1,2})?)", Pattern.CASE_INSENSITIVE);
+            Pattern.compile("(?:under|below|less than|max|up to|within)\\s*(?:\\$|rs\\.?|inr|₹)?\\s*([0-9]+(?:\\.[0-9]{1,2})?)", Pattern.CASE_INSENSITIVE);
 
     private static final Map<String, List<String>> INTENT_SYNONYMS = Map.of(
             "developer", List.of("keyboard", "mouse", "monitor", "laptop", "ergonomic", "code", "work", "tech"),
@@ -165,11 +165,11 @@ public class SemanticVectorEngine {
         }
 
         if (maxPrice != null && product.getPrice().compareTo(maxPrice) <= 0) {
-            reasons.add("Within budget ($" + product.getPrice() + " <= $" + maxPrice + ")");
+            reasons.add("Within budget (Rs. " + product.getPrice() + " <= Rs. " + maxPrice + ")");
         }
 
         if (reasons.isEmpty()) {
-            reasons.add("Semantic semantic match based on product features");
+            reasons.add("Semantic match based on product features");
         }
 
         return String.join(" | ", reasons);

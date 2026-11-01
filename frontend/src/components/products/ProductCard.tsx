@@ -94,7 +94,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <div>
             <div className="text-[10px] text-slate-400 uppercase">Price</div>
             <div className="text-lg font-bold text-white">
-              ${Number(product.price).toFixed(2)}
+              Rs. {Number(product.price).toFixed(2)}
             </div>
           </div>
 

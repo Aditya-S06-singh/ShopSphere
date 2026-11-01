@@ -21,7 +21,7 @@ interface AiChatDrawerProps {
 }
 
 const QUICK_PROMPTS = [
-  'Gifts for developers under $100',
+  'Gifts for developers under Rs. 5000',
   'Ergonomic gear for long typing hours',
   'Best wireless audio and music equipment',
   'What accessories do you have in stock?',
@@ -177,7 +177,7 @@ export const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                             <h5 className="font-semibold truncate text-[11px]">{p.name}</h5>
                             <div className="flex items-center space-x-2 mt-0.5">
                               <span className="font-bold text-indigo-600 text-xs">
-                                ${p.price.toFixed(2)}
+                                Rs. {p.price.toFixed(2)}
                               </span>
                               {p.stockQuantity > 0 ? (
                                 <span className="text-[9px] text-emerald-600 font-medium">

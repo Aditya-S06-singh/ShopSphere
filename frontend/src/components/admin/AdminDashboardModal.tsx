@@ -211,7 +211,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     <TrendingUp className="w-4 h-4" />
                   </div>
                   <div className="text-xl font-bold text-emerald-900">
-                    ${stats.totalRevenue.toFixed(2)}
+                    Rs. {stats.totalRevenue.toFixed(2)}
                   </div>
                   <span className="text-[10px] text-emerald-600 font-medium">Excludes cancelled</span>
                 </div>
@@ -271,7 +271,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                           </div>
                         </div>
                         <div className="flex items-center space-x-3">
-                          <span className="font-bold text-gray-900">${ord.totalAmount.toFixed(2)}</span>
+                          <span className="font-bold text-gray-900">Rs. {ord.totalAmount.toFixed(2)}</span>
                           {statusBadge(ord.status)}
                         </div>
                       </div>
@@ -342,7 +342,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                             ))}
                           </td>
                           <td className="py-3 px-3 font-bold text-gray-900 whitespace-nowrap">
-                            ${order.totalAmount.toFixed(2)}
+                            Rs. {order.totalAmount.toFixed(2)}
                           </td>
                           <td className="py-3 px-3 whitespace-nowrap">{statusBadge(order.status)}</td>
                           <td className="py-3 px-3 whitespace-nowrap">
@@ -414,7 +414,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                             <span className="truncate max-w-xs">{p.name}</span>
                           </td>
                           <td className="py-2.5 px-3 font-mono text-gray-500">{p.sku}</td>
-                          <td className="py-2.5 px-3 font-bold text-gray-800">${p.price.toFixed(2)}</td>
+                          <td className="py-2.5 px-3 font-bold text-gray-800">Rs. {p.price.toFixed(2)}</td>
                           <td className="py-2.5 px-3 whitespace-nowrap">
                             {isOut ? (
                               <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
