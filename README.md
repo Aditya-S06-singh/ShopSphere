@@ -1,146 +1,173 @@
-# ShopSphere 🛒✨
+# ShopSphere 🛍️ ✨
 
-> A portfolio-quality, AI-powered e-commerce platform built as a modular monolith.
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.2-brightgreen.svg?logo=springboot)](https://spring.io/projects/spring-boot)
+[![Java 21/27](https://img.shields.io/badge/Java-21%20LTS%20%7C%2027-orange.svg?logo=openjdk)](https://openjdk.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-blue.svg?logo=postgresql)](https://www.postgresql.org/)
+[![React](https://img.shields.io/badge/React-18-61DAFB.svg?logo=react)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6.svg?logo=typescript)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-6-646CFF.svg?logo=vite)](https://vitejs.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC.svg?logo=tailwindcss)](https://tailwindcss.com/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker)](https://www.docker.com/)
+[![Google Gemini](https://img.shields.io/badge/AI-Google%20Gemini%20RAG-8E75C2.svg?logo=google)](https://ai.google.dev/)
 
-## Architecture & Tech Stack
-
-| Layer | Technologies |
-| :--- | :--- |
-| **Backend** | Java 27 (targeting Java 21 LTS release bytecode), Spring Boot 3.4.2, Spring Data JPA, Hibernate, HikariCP, Maven 3.9.16 |
-| **Database** | PostgreSQL 18 (Local instance) |
-| **Frontend** | React 18, TypeScript 5.6, Vite 6, Tailwind CSS 3.4, React Router 6, Axios, Lucide Icons |
-| **Security** | Spring Security, BCrypt, JWT Authentication, Role-Based Access Control (RBAC) |
-| **AI Features (Roadmap)** | Semantic Product Search (vector embeddings) & RAG Shopping Assistant |
-| **Infrastructure** | Docker Desktop (WSL2 backend), Git |
+> **ShopSphere** is a portfolio-grade, AI-powered e-commerce platform designed and built as a high-performance modular monolith. It pairs a robust **Spring Boot 3.4** backend on **PostgreSQL 18** with an interactive **React 18 / TypeScript / Tailwind CSS** frontend, featuring stateless **JWT (HMAC-SHA256)** authentication, atomic inventory checkout, an administrative operations console, and real-time **Google Gemini RAG AI Shopping Concierge**.
 
 ---
 
-## Project Structure
+## 🌟 Key Features
+
+### 🧠 1. AI-Powered Shopping & Semantic Search
+- **Contextual RAG Assistant ("SphereAI")**: Retrieves real-time catalog items from PostgreSQL, augments prompts with stock and pricing data, and invokes **Google Gemini LLM** (`gemini-3.8-flash`) with automatic fallback to high-demand alternative models or an embedded deterministic local concierge.
+- **In-Memory Semantic Vector Engine**: Computes cosine similarity, intent synonym expansion (audio, developer, gaming, ergonomics), stop-word stripping, and natural budget parsing (e.g., *"wireless under $150"*).
+- **1-Click Cart Insertion**: Conversational markdown responses render interactive product cards directly in the chat stream with instant checkout capabilities.
+
+### 🔐 2. Enterprise Security & RBAC
+- **Stateless Spring Security 6**: Custom filter chain with `JwtAuthenticationFilter`, signed tokens via HMAC-SHA256, and BCrypt password encryption.
+- **Role-Based Access Control**:
+  - `ROLE_CUSTOMER`: Browsing, dynamic filtering, personal cart management, transactional order placement, and cancellation.
+  - `ROLE_ADMIN`: Dedicated operations console, catalog CRUD (`POST`, `PUT`, `DELETE`, `PATCH /stock`), order fulfillment, and KPI telemetry.
+- **Strict Payment Simulation**: Built-in `SimulatedPaymentService` validating test tokens (`tok_visa`, `tok_mastercard`, `tok_amex`, `tok_fail`) — **zero handling or storage of raw card numbers**.
+
+### 📦 3. Product Catalog & Real-time Inventory
+- Dynamic JPA Specifications for keyword search, price bounds, category filtering, and in-stock toggling.
+- Atomic, transactional stock reservation on checkout with automatic inventory restoration upon order cancellation.
+- Seeded with rich sample hardware, acoustics, and smart gear.
+
+### 📊 4. Admin Management Dashboard
+- Real-time business KPIs: Total Revenue, Gross Order Count, Active Fulfillment Pipeline, Low-Stock Warnings ($\le 5$ units).
+- Order fulfillment lifecycle management: `PENDING` $\to$ `PAYMENT_CONFIRMED` $\to$ `PROCESSING` $\to$ `SHIPPED` $\to$ `DELIVERED` $\to$ `CANCELLED`.
+- Instant inventory adjustments with low-stock badges and category counters.
+
+### 🐳 5. Production Docker Packaging
+- **Multi-Stage Backend Build**: Maven 3.9 builder $\to$ minimal Temurin 21 JRE Alpine image running as an unprivileged non-root user.
+- **Multi-Stage Frontend Build**: Node 20 builder $\to$ optimized Nginx Alpine web server with SPA routing fallback and API reverse proxy.
+- **Docker Compose**: One-command local orchestration with PostgreSQL 16 Alpine and database health checks.
+
+---
+
+## 🏗️ Architecture & Tech Stack
 
 ```text
 ShopSphere/
-├── docs/                     # Architecture, database setup script, guides
-│   ├── database-setup.sql    # PostgreSQL 18 DB and user provisioning
-│   ├── architecture.md       # Technical decisions & design rationale
-│   └── setup-guide.md        # Step-by-step developer guide
-├── backend/                  # Spring Boot 3.4.2 backend application
-│   ├── src/main/java/        # Application source code
-│   └── src/test/java/        # Integration and unit tests
-├── frontend/                 # React + TypeScript + Vite + Tailwind CSS frontend
-│   └── src/                  # React components, API clients, styling
-├── .env.example              # Environment variable configuration template
-└── .gitignore                # Production-grade Git ignore rules
+├── backend/                       # Spring Boot 3.4.2 Modular Monolith
+│   ├── src/main/java/com/shopsphere/
+│   │   ├── ai/                    # SemanticVectorEngine, RagShoppingService, AiController
+│   │   ├── auth/                  # User entity, AuthService, AuthController
+│   │   ├── cart/                  # Cart & CartItem entities, CartService, CartController
+│   │   ├── common/                # Exception handlers, PagedResponse, HealthController
+│   │   ├── order/                 # Order entity, SimulatedPaymentService, OrderService, AdminOrderController
+│   │   ├── product/               # Product & Category entities, dynamic JPA Specifications
+│   │   └── security/              # JwtService, JwtAuthenticationFilter, SecurityConfig
+│   └── Dockerfile                 # Multi-stage Java 21/27 container build
+├── frontend/                      # React 18 + TypeScript + Vite + Tailwind CSS
+│   ├── src/
+│   │   ├── api/                   # Typed Axios API clients (auth, products, cart, orders, ai, admin)
+│   │   ├── components/            # UI components (AiChatDrawer, AdminDashboard, CartDrawer, CheckoutModal)
+│   │   ├── context/               # AuthContext & CartContext
+│   │   └── types/                 # Strongly-typed TypeScript interfaces
+│   ├── nginx.conf                 # SPA fallback & reverse proxy configuration
+│   └── Dockerfile                 # Multi-stage Node -> Nginx container build
+├── docs/                          # Architecture guides & database setup scripts
+├── docker-compose.yml             # Orchestration for Postgres, Backend, and Frontend
+└── .env.example                   # Environment variable template
 ```
 
 ---
 
-## Docker Quickstart (Recommended)
+## 🚀 Quickstart
 
-> Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) with WSL2 backend.
+### Option A: Docker Compose (Recommended)
+
+> **Prerequisite**: [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
 
 ```bash
-# 1. Clone the repo (if you haven't already)
-git clone https://github.com/<you>/ShopSphere.git
+# 1. Clone the repository
+git clone https://github.com/Aditya-S06-singh/ShopSphere.git
 cd ShopSphere
 
-# 2. Configure secrets
+# 2. Configure environment secrets
 cp .env.example .env
-# Edit .env — set DB_PASSWORD, JWT_SECRET, and optionally GEMINI_API_KEY
+# Edit .env to set your GEMINI_API_KEY (optional, falls back to local RAG if omitted)
 
-# 3. Build & run everything
+# 3. Spin up all containers
 docker compose up --build
 ```
 
-| Service | URL |
-|---|---|
-| Frontend (React) | http://localhost:3000 |
-| Backend API | http://localhost:8080/api/v1/health |
+| Service | Endpoint | Details |
+| :--- | :--- | :--- |
+| **Frontend Application** | [http://localhost:3000](http://localhost:3000) | React SPA served via Nginx |
+| **Backend REST API** | [http://localhost:8080/api/v1/health](http://localhost:8080/api/v1/health) | Spring Boot Health & Diagnostics |
+| **PostgreSQL Database** | `localhost:5432` | Database: `shopsphere` |
 
-Stop: `docker compose down` &nbsp;·&nbsp; Wipe data: `docker compose down -v`
+To stop containers: `docker compose down`
 
 ---
 
-## Local Development Quickstart
+### Option B: Local Development
 
-### 1. Database Provisioning
-Run the SQL script located in `docs/database-setup.sql` on your PostgreSQL 18 instance:
+#### 1. Database Setup
+Ensure PostgreSQL 16+ is running locally, then execute `docs/database-setup.sql` or create a database named `shopsphere_db`.
+
+#### 2. Start the Backend (Spring Boot)
 ```bash
-"C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -f docs/database-setup.sql
+cd backend
+mvn clean test             # Run automated test suite (100% passing)
+mvn spring-boot:run        # Starts on http://localhost:8080
 ```
 
-### 2. Backend
+#### 3. Start the Frontend (Vite)
+```bash
+cd frontend
+npm install
+npm run dev                # Starts on http://localhost:5173
+```
+
+---
+
+## 🔑 Demo Credentials
+
+The platform seeds sample credentials on startup for instant evaluation:
+
+| Role | Email | Password | Permissions |
+| :--- | :--- | :--- | :--- |
+| **Administrator** | `admin@shopsphere.com` | `Admin@12345` | Full admin console, catalog CRUD, order status override |
+| **Customer** | `customer@shopsphere.com` | `Customer@12345` | Browsing, cart, checkout, personal order cancellation |
+
+> **Pro Tip**: The frontend login modal includes **1-click quick-fill buttons** for both demo accounts!
+
+---
+
+## 🧪 Testing & Verification
+
+The backend includes a comprehensive integration test suite covering security, transactional rollbacks, vector rankings, and RBAC:
+
 ```bash
 cd backend
 mvn clean test
-mvn spring-boot:run
 ```
-API endpoints are exposed on `http://localhost:8080`.
-Check health: `http://localhost:8080/api/v1/health`.
 
-### 3. Frontend
-```bash
-cd frontend
-npm.cmd install
-npm.cmd run dev
-```
-Open `http://localhost:5173` in your browser.
+- **Health probe & context loading tests**
+- **Authentication & JWT lifecycle tests**
+- **Catalog specification & inventory filter tests**
+- **Cart CRUD & transactional stock decrement tests**
+- **Simulated payment decline & automatic inventory restoration tests**
+- **Admin analytics & order fulfillment tests**
+- **AI semantic vector search & prompt budget parsing tests**
 
 ---
 
-## Milestone Progress
+## 🛣️ Milestone Roadmap
 
-- [x] **Milestone 1**: Foundation & Scaffolding
-  - Java 27 / Spring Boot 3.4 (`--release 21`) compilation verified.
-  - PostgreSQL 18 connection setup and health probe REST API.
-  - React + TypeScript + Vite + Tailwind CSS dashboard with live heartbeat monitoring.
-  - Automated tests passing.
-- [x] **Milestone 2**: Authentication & Role-Based Authorization (JWT + BCrypt)
-  - Spring Security 6 stateless filter chain with `JwtAuthenticationFilter`.
-  - BCrypt password encryption and HMAC-SHA256 signed JWT tokens.
-  - User domain entity with roles (`ROLE_CUSTOMER`, `ROLE_ADMIN`).
-  - Auth REST endpoints: `register`, `login`, and authenticated `me`.
-  - Global exception handling for duplicate emails (409), bad credentials (401), and validation errors (400).
-  - Seeded demo customer and admin accounts with 1-click frontend autofill.
-  - Full suite of 9 JUnit/MockMvc integration tests passing.
-- [x] **Milestone 3**: Product Catalog & Inventory Management
-  - Relational Category and Product entities with slug generation and inventory tracking.
-  - Dynamic JPA specifications for category filtering, search, price range, and stock availability.
-  - Admin CRUD endpoints (`POST`, `PUT`, `DELETE`, `PATCH /stock`) secured for `ROLE_ADMIN`.
-  - Public paginated browsing APIs for customer shop discovery.
-  - Rich sample product and category dataset seeded into PostgreSQL 18.
-  - Interactive React catalog with filter tabs, instant search, detail modals, and admin inventory tools.
-  - 17 backend integration tests passing cleanly.
-- [x] **Milestone 4**: Shopping Cart, Order Workflow & Simulated Payment Checkout
-  - User-bound `Cart` and `CartItem` entities with automatic subtotal and line-total calculation.
-  - Cart CRUD REST API: get cart, add item, update quantity, remove item, clear cart.
-  - Transactional checkout engine in `OrderService`: cart validation, stock verification, atomic inventory decrement, and cart clearing.
-  - `SimulatedPaymentService` supporting test tokens (`tok_visa`, `tok_mastercard`, `tok_amex`, `tok_fail`) — zero storage or handling of real card data.
-  - Order entity with lifecycle statuses (`PENDING`, `PAYMENT_CONFIRMED`, `PROCESSING`, `SHIPPED`, `DELIVERED`, `CANCELLED`).
-  - Order cancellation API with automatic inventory restoration.
-  - Slide-out Cart Drawer, simulated checkout modal with card selector, and customer Order History tracking modal.
-  - 31 backend integration tests passing (100% success rate).
-- [x] **Milestone 5**: Admin Dashboard & Order Management
-  - Admin Order Management endpoints (`GET /api/v1/admin/orders`, `PATCH /api/v1/admin/orders/{id}/status`) guarded by `ROLE_ADMIN`.
-  - Full order lifecycle transitions: `PENDING` -> `PAYMENT_CONFIRMED` -> `PROCESSING` -> `SHIPPED` -> `DELIVERED` -> `CANCELLED`.
-  - Automatic inventory restoration when an admin cancels an order; stock re-check when reopening.
-  - Business analytics & KPIs endpoint (`GET /api/v1/admin/dashboard/stats`): Total Revenue, Total Orders, Active Orders, Catalog Count, Low-Stock Alerts (&le; 5), and Recent Transactions.
-  - Interactive Admin Operations Console in React: Overview KPI cards, real-time Order Fulfillment table with status updater, and live Inventory Watch table with direct stock adjustments.
-  - 36 backend integration tests passing (100% success rate).
-- [x] **Milestone 6**: AI Semantic Search & RAG Assistant
-  - High-performance `SemanticVectorEngine` implementing cosine similarity, intent synonym expansion, numerical budget parsing (e.g. "under $100"), and English stop-word filtering.
-  - Contextual Retrieval-Augmented Generation (RAG) shopping concierge (`RagShoppingService`):
-    - Retrieves candidate products from live PostgreSQL catalog.
-    - Augments prompt with real-time pricing and stock data.
-    - Supports Google Gemini LLM API (`GEMINI_API_KEY`) with deterministic local RAG concierge fallback when offline.
-  - REST endpoints at `/api/v1/ai/search` and `/api/v1/ai/chat` open to all shoppers.
-  - Interactive React AI UI: Floating "Ask SphereAI" concierge drawer with quick prompt chips, markdown parsing, and embedded product cards with 1-click cart insertion.
-  - Main catalog "AI Semantic Search" toggle with live match % and semantic rationale pills.
-  - 40 backend integration tests passing (100% success rate).
-- [x] **Milestone 7**: Production Docker Packaging & Final Portfolio Review
-  - Multi-stage Docker builds for backend (Maven → JRE Alpine) and frontend (Node → Nginx Alpine).
-  - `docker-compose.yml` orchestrating PostgreSQL 16-Alpine, Spring Boot backend, and React/Nginx frontend.
-  - Nginx reverse proxy with SPA fallback routing and API proxy to backend container.
-  - Docker health checks ensuring backend waits for healthy database before starting.
-  - Frontend served on port 3000, backend on port 8080; all secrets injected via `.env`.
-  - One-command deployment: `docker compose up --build`.
+- [x] **Milestone 1**: Scaffolding, Spring Boot 3.4 on JDK 27, PostgreSQL 18 HikariCP, Health Check API, React Heartbeat Dashboard.
+- [x] **Milestone 2**: Authentication & RBAC, BCrypt hashing, HMAC-SHA256 JWT, User entities, Exception handler, Demo login modal.
+- [x] **Milestone 3**: Dynamic Product Catalog, Category JPA relations, dynamic specifications, Admin inventory CRUD.
+- [x] **Milestone 4**: Shopping Cart, Atomic Order Workflow, Simulated Payment tokens (`tok_visa`, `tok_fail`), Inventory rollback on cancel.
+- [x] **Milestone 5**: Admin Dashboard, Business KPI Analytics, Order Fulfillment Lifecycle (`PATCH /status`), Inventory restock watch.
+- [x] **Milestone 6**: AI Semantic Search (`SemanticVectorEngine`), live Google Gemini RAG assistant (`RagShoppingService`), `AiChatDrawer`.
+- [x] **Milestone 7**: Production Multi-Stage Docker Packaging (`backend/Dockerfile`, `frontend/Dockerfile`, `nginx.conf`, `docker-compose.yml`).
 
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
