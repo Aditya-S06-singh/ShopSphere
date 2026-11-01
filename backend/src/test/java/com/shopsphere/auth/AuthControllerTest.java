@@ -176,3 +176,4 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.error").value("Unauthorized"));
     }
 }
+

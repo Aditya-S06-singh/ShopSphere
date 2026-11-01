@@ -22,3 +22,4 @@ public record RegisterRequest(
         String lastName
 ) {
 }
+

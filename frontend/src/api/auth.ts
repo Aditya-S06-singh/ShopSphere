@@ -15,3 +15,4 @@ export const fetchCurrentUser = async (): Promise<User> => {
   const response = await apiClient.get<User>('/auth/me');
   return response.data;
 };
+

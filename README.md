@@ -76,7 +76,14 @@ Open `http://localhost:5173` in your browser.
   - Global exception handling for duplicate emails (409), bad credentials (401), and validation errors (400).
   - Seeded demo customer and admin accounts with 1-click frontend autofill.
   - Full suite of 9 JUnit/MockMvc integration tests passing.
-- [ ] **Milestone 3**: Product Catalog & Inventory Management
+- [x] **Milestone 3**: Product Catalog & Inventory Management
+  - Relational Category and Product entities with slug generation and inventory tracking.
+  - Dynamic JPA specifications for category filtering, search, price range, and stock availability.
+  - Admin CRUD endpoints (`POST`, `PUT`, `DELETE`, `PATCH /stock`) secured for `ROLE_ADMIN`.
+  - Public paginated browsing APIs for customer shop discovery.
+  - Rich sample product and category dataset seeded into PostgreSQL 18.
+  - Interactive React catalog with filter tabs, instant search, detail modals, and admin inventory tools.
+  - 17 backend integration tests passing cleanly.
 - [ ] **Milestone 4**: Shopping Cart & Simulated Payment Checkout
 - [ ] **Milestone 5**: Admin Dashboard & Order Management
 - [ ] **Milestone 6**: AI Semantic Search & RAG Assistant

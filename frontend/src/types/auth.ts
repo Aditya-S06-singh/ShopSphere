@@ -33,3 +33,4 @@ export interface ApiError {
   message: string;
   validationErrors?: Record<string, string>;
 }
+

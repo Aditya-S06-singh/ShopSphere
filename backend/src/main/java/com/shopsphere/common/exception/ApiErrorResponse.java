@@ -19,3 +19,4 @@ public record ApiErrorResponse(
         return new ApiErrorResponse(Instant.now(), status, error, message, path, errors);
     }
 }
+

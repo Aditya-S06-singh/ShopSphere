@@ -5,3 +5,4 @@ public class EmailAlreadyInUseException extends RuntimeException {
         super("An account with email '" + email + "' already exists.");
     }
 }
+
