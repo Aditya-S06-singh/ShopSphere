@@ -3,6 +3,9 @@ package com.shopsphere.auth;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shopsphere.auth.dto.LoginRequest;
 import com.shopsphere.auth.dto.RegisterRequest;
+import com.shopsphere.cart.CartItemRepository;
+import com.shopsphere.cart.CartRepository;
+import com.shopsphere.order.OrderRepository;
 import com.shopsphere.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,8 +37,20 @@ class AuthControllerTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private CartItemRepository cartItemRepository;
+
+    @Autowired
+    private CartRepository cartRepository;
+
+    @Autowired
+    private OrderRepository orderRepository;
+
     @BeforeEach
     void setUp() {
+        orderRepository.deleteAll();
+        cartItemRepository.deleteAll();
+        cartRepository.deleteAll();
         userRepository.deleteAll();
     }
 

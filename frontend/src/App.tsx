@@ -1,11 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { fetchHealth, HealthResponse } from './api/client';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { CartProvider, useCart } from './context/CartContext';
 import { AuthModal } from './components/auth/AuthModal';
 import { ProductCard } from './components/products/ProductCard';
 import { ProductDetailModal } from './components/products/ProductDetailModal';
 import { AddProductModal } from './components/admin/AddProductModal';
+import { CartDrawer } from './components/cart/CartDrawer';
+import { CheckoutModal } from './components/checkout/CheckoutModal';
+import { OrderHistoryModal } from './components/orders/OrderHistoryModal';
 import { Category, Product } from './types/product';
+import { Order } from './types/order';
 import { 
   fetchCategories, 
   fetchProducts, 
@@ -27,11 +32,14 @@ import {
   Plus, 
   SlidersHorizontal,
   PackageOpen,
-  Filter
+  Filter,
+  ReceiptText,
+  CheckCircle2
 } from 'lucide-react';
 
 function DashboardContent() {
   const { user, isAuthenticated, logout } = useAuth();
+  const { cart, addItem } = useCart();
   const isAdmin = user?.role === 'ROLE_ADMIN';
 
   // System Health state
@@ -59,8 +67,11 @@ function DashboardContent() {
   // Admin Add Product Modal
   const [addProductModalOpen, setAddProductModalOpen] = useState<boolean>(false);
 
-  // Temporary local cart counter for preview
-  const [cartCount, setCartCount] = useState<number>(0);
+  // Cart & Checkout & Order Modals
+  const [cartDrawerOpen, setCartDrawerOpen] = useState<boolean>(false);
+  const [checkoutModalOpen, setCheckoutModalOpen] = useState<boolean>(false);
+  const [ordersModalOpen, setOrdersModalOpen] = useState<boolean>(false);
+  const [lastPlacedOrder, setLastPlacedOrder] = useState<Order | null>(null);
 
   // Check backend health
   const checkStatus = async () => {
@@ -135,14 +146,30 @@ function DashboardContent() {
     }
   };
 
-  const handleAddToCart = (_product: Product) => {
-    setCartCount((prev) => prev + 1);
+  const handleAddToCart = async (product: Product) => {
+    if (!isAuthenticated) {
+      openAuth('login');
+      return;
+    }
+    try {
+      await addItem(product.id, 1);
+    } catch (err: any) {
+      alert(err.response?.data?.message || err.message || 'Failed to add item to cart');
+    }
   };
 
   const openAuth = (mode: 'login' | 'register') => {
     setAuthModalMode(mode);
     setAuthModalOpen(true);
   };
+
+  const handleOrderSuccess = (order: Order) => {
+    setCheckoutModalOpen(false);
+    setLastPlacedOrder(order);
+    loadProducts(); // refresh remaining stock
+  };
+
+  const cartCount = cart?.totalItems || 0;
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
@@ -176,11 +203,30 @@ function DashboardContent() {
               <span>{health?.status === 'UP' ? 'System 200' : 'Diagnostics'}</span>
             </button>
 
-            {/* Cart Preview Button */}
+            {/* My Orders Button */}
+            {isAuthenticated && (
+              <button
+                onClick={() => setOrdersModalOpen(true)}
+                title="Order History"
+                className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors border border-slate-700 flex items-center space-x-1 text-xs cursor-pointer"
+              >
+                <ReceiptText className="w-4 h-4 text-indigo-400" />
+                <span className="hidden md:inline">Orders</span>
+              </button>
+            )}
+
+            {/* Cart Button */}
             <div className="relative">
               <button
-                className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors border border-slate-700 flex items-center"
-                title="Shopping Cart (Milestone 4 Preview)"
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    openAuth('login');
+                  } else {
+                    setCartDrawerOpen(true);
+                  }
+                }}
+                className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors border border-slate-700 flex items-center cursor-pointer"
+                title="Shopping Cart"
               >
                 <ShoppingBag className="w-4 h-4 text-indigo-400" />
                 {cartCount > 0 && (
@@ -228,14 +274,14 @@ function DashboardContent() {
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => openAuth('login')}
-                  className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 transition-colors border border-slate-700"
+                  className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 transition-colors border border-slate-700 cursor-pointer"
                 >
                   <LogIn className="w-3.5 h-3.5" />
                   <span>Sign In</span>
                 </button>
                 <button
                   onClick={() => openAuth('register')}
-                  className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-medium text-white transition-colors shadow-md shadow-indigo-600/20"
+                  className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-medium text-white transition-colors shadow-md shadow-indigo-600/20 cursor-pointer"
                 >
                   <UserPlus className="w-3.5 h-3.5" />
                   <span>Register</span>
@@ -246,137 +292,160 @@ function DashboardContent() {
         </div>
       </header>
 
-      {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Collapsible System Health Card */}
-        {showHealthCard && (
-          <div className="bg-slate-800/80 border border-slate-700 rounded-2xl p-5 shadow-xl animate-in slide-in-from-top-3 duration-200">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-700">
-              <div className="flex items-center space-x-2">
-                <Server className="w-5 h-5 text-indigo-400" />
-                <h3 className="text-sm font-semibold text-white">Full-Stack Heartbeat & PostgreSQL 18</h3>
-              </div>
+      {/* Diagnostics Flyout */}
+      {showHealthCard && (
+        <div className="border-b border-slate-800 bg-slate-800/60 p-4 transition-all">
+          <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4 text-xs font-mono">
+            <div className="flex items-center space-x-3">
+              <span className={`w-2.5 h-2.5 rounded-full ${health?.status === 'UP' ? 'bg-emerald-400 animate-pulse' : 'bg-rose-500'}`} />
+              <span className="font-semibold text-slate-300">Backend Status: {health?.status || 'DOWN'}</span>
+              <span className="text-slate-500">|</span>
+              <span className="text-slate-400">Database: {health?.details?.dbProductName || 'PostgreSQL 18'}</span>
+              <span className="text-slate-500">|</span>
+              <span className="text-slate-400">Status: {health?.status || 'N/A'}</span>
+            </div>
+            <button
+              onClick={checkStatus}
+              disabled={loadingHealth}
+              className="px-2.5 py-1 rounded-md bg-slate-700 hover:bg-slate-600 text-slate-200 flex items-center space-x-1"
+            >
+              <RefreshCw className={`w-3 h-3 ${loadingHealth ? 'animate-spin' : ''}`} />
+              <span>Refresh Probe</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Order Confirmation Banner */}
+      {lastPlacedOrder && (
+        <div className="bg-emerald-500/10 border-b border-emerald-500/20 px-4 py-3">
+          <div className="max-w-7xl mx-auto flex items-center justify-between text-xs sm:text-sm">
+            <div className="flex items-center space-x-2 text-emerald-400 font-medium">
+              <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+              <span>Order <strong>{lastPlacedOrder.orderNumber}</strong> placed successfully! Total: ${lastPlacedOrder.totalAmount.toFixed(2)}</span>
+            </div>
+            <div className="flex items-center space-x-3">
               <button
-                onClick={checkStatus}
-                disabled={loadingHealth}
-                className="px-2.5 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs text-slate-200 flex items-center space-x-1"
+                onClick={() => {
+                  setLastPlacedOrder(null);
+                  setOrdersModalOpen(true);
+                }}
+                className="text-emerald-300 hover:text-white underline font-semibold cursor-pointer"
               >
-                <RefreshCw className={`w-3 h-3 ${loadingHealth ? 'animate-spin' : ''}`} />
-                <span>Probe</span>
+                View Tracking
+              </button>
+              <button
+                onClick={() => setLastPlacedOrder(null)}
+                className="text-slate-400 hover:text-white cursor-pointer"
+              >
+                &times;
               </button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 text-xs">
-              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-700/50 flex items-center justify-between">
-                <span className="text-slate-400">Backend API:</span>
-                <span className="text-emerald-400 font-semibold">{health?.appName} ({health?.status})</span>
-              </div>
-              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-700/50 flex items-center justify-between">
-                <span className="text-slate-400">PostgreSQL Pool:</span>
-                <span className="text-emerald-400 font-semibold">{health?.details?.dbProductName} {health?.details?.dbProductVersion}</span>
-              </div>
-            </div>
           </div>
-        )}
-
-        {/* Catalog Banner & Milestone 3 Pill */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
-          <div className="space-y-1">
-            <div className="inline-flex items-center space-x-2 px-3 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-medium">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-              <span>Milestone 3: Dynamic Catalog & Category Management</span>
-            </div>
-            <h1 className="text-3xl font-extrabold text-white tracking-tight">
-              Featured Product Catalog
-            </h1>
-            <p className="text-xs text-slate-400">
-              Explore premium hardware, wearables, audio and modern accessories with live inventory counts.
-            </p>
-          </div>
-
-          {/* Admin "Add Product" button */}
-          {isAdmin && (
-            <button
-              onClick={() => setAddProductModalOpen(true)}
-              className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-semibold shadow-lg shadow-purple-600/20 transition-all self-start md:self-auto"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add New Product (Admin)</span>
-            </button>
-          )}
         </div>
+      )}
 
-        {/* Search, Filter & Sort Controls */}
-        <div className="bg-slate-800/60 border border-slate-700/80 rounded-2xl p-4 sm:p-5 shadow-lg space-y-4">
-          <div className="flex flex-col md:flex-row gap-3">
-            {/* Search Input */}
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-              <input
-                type="text"
-                placeholder="Search products by title, keywords or specs..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
+      {/* Hero Section */}
+      <section className="relative overflow-hidden py-12 border-b border-slate-800 bg-gradient-to-b from-slate-900 via-slate-800/40 to-slate-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-medium">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Milestone 4: Shopping Cart, Order Workflow & Simulated Payments</span>
+          </div>
+          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white max-w-3xl mx-auto">
+            Portfolio-Quality E-Commerce Platform
+          </h1>
+          <p className="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+            Engineered with Spring Boot 3.4 on JDK 27, PostgreSQL 18, React 18, Tailwind CSS, 
+            stateless JWT security, and simulated card authorization.
+          </p>
+        </div>
+      </section>
 
-            {/* Sort Dropdown */}
-            <div className="flex items-center space-x-2">
-              <SlidersHorizontal className="w-4 h-4 text-slate-400" />
-              <select
-                value={`${sortBy}-${sortDir}`}
-                onChange={(e) => {
-                  const [field, dir] = e.target.value.split('-');
-                  setSortBy(field);
-                  setSortDir(dir as 'asc' | 'desc');
-                }}
-                className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="createdAt-desc">Newest Arrivals</option>
-                <option value="price-asc">Price: Low to High</option>
-                <option value="price-desc">Price: High to Low</option>
-                <option value="name-asc">Alphabetical (A-Z)</option>
-              </select>
-            </div>
+      {/* Main Content Area */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-6">
+        {/* Search, Filter, Sort and Admin Action Toolbar */}
+        <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between bg-slate-800/40 p-4 rounded-2xl border border-slate-800">
+          {/* Search Box */}
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search products by title, SKU, or keyword..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-slate-900/80 border border-slate-700 rounded-xl pl-10 pr-4 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
 
-            {/* In-Stock Only Toggle */}
-            <label className="flex items-center space-x-2 px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-700 cursor-pointer text-xs text-slate-300 hover:text-white select-none">
+          {/* Filters & Actions */}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* In-Stock Toggle */}
+            <label className="flex items-center space-x-2 text-xs text-slate-300 bg-slate-900/60 px-3 py-2 rounded-xl border border-slate-700 cursor-pointer hover:bg-slate-900">
               <input
                 type="checkbox"
                 checked={inStockOnly}
                 onChange={(e) => setInStockOnly(e.target.checked)}
-                className="rounded bg-slate-800 border-slate-600 text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5"
+                className="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500"
               />
-              <span>In-Stock Only</span>
+              <Filter className="w-3.5 h-3.5 text-indigo-400" />
+              <span>In Stock Only</span>
             </label>
+
+            {/* Sort Dropdown */}
+            <div className="flex items-center space-x-1 bg-slate-900/60 px-2 py-1.5 rounded-xl border border-slate-700 text-xs">
+              <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400 ml-1" />
+              <select
+                value={`${sortBy}-${sortDir}`}
+                onChange={(e) => {
+                  const [b, d] = e.target.value.split('-');
+                  setSortBy(b);
+                  setSortDir(d as 'asc' | 'desc');
+                }}
+                aria-label="Sort products"
+                className="bg-transparent text-slate-300 border-none focus:outline-none text-xs cursor-pointer py-1"
+              >
+                <option value="createdAt-desc" className="bg-slate-800 text-slate-200">Newest First</option>
+                <option value="price-asc" className="bg-slate-800 text-slate-200">Price: Low to High</option>
+                <option value="price-desc" className="bg-slate-800 text-slate-200">Price: High to Low</option>
+                <option value="name-asc" className="bg-slate-800 text-slate-200">Name: A to Z</option>
+              </select>
+            </div>
+
+            {/* Admin Add Product Button */}
+            {isAdmin && (
+              <button
+                onClick={() => setAddProductModalOpen(true)}
+                className="inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-xs font-semibold text-white shadow-lg shadow-purple-600/20 transition-colors cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Product</span>
+              </button>
+            )}
           </div>
+        </div>
 
-          {/* Category Filter Pills */}
-          <div className="flex items-center space-x-2 overflow-x-auto pb-1 pt-1 scrollbar-none">
-            <span className="text-xs text-slate-400 flex items-center mr-1">
-              <Filter className="w-3 h-3 mr-1" />
-              <span>Categories:</span>
-            </span>
-
+        {/* Category Pills */}
+        <div className="overflow-x-auto pb-1">
+          <div className="flex space-x-2">
             <button
               onClick={() => setSelectedCategory(null)}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
+              className={`px-4 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
                 selectedCategory === null
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                  : 'bg-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-700 border border-slate-700'
+                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                  : 'bg-slate-800/80 text-slate-400 hover:text-slate-200 border border-slate-700/60'
               }`}
             >
-              All Products
+              All Categories
             </button>
-
             {categories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`px-3 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
+                className={`px-4 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
                   selectedCategory === cat.id
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                    : 'bg-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-700 border border-slate-700'
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                    : 'bg-slate-800/80 text-slate-400 hover:text-slate-200 border border-slate-700/60'
                 }`}
               >
                 {cat.name}
@@ -404,7 +473,7 @@ function DashboardContent() {
                 setSelectedCategory(null);
                 setInStockOnly(false);
               }}
-              className="mt-2 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-medium text-white transition-colors"
+              className="mt-2 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-medium text-white transition-colors cursor-pointer"
             >
               Reset Filters
             </button>
@@ -449,6 +518,26 @@ function DashboardContent() {
         initialMode={authModalMode}
       />
 
+      {/* Shopping Cart Drawer */}
+      <CartDrawer
+        isOpen={cartDrawerOpen}
+        onClose={() => setCartDrawerOpen(false)}
+        onProceedToCheckout={() => setCheckoutModalOpen(true)}
+      />
+
+      {/* Checkout Modal */}
+      <CheckoutModal
+        isOpen={checkoutModalOpen}
+        onClose={() => setCheckoutModalOpen(false)}
+        onOrderSuccess={handleOrderSuccess}
+      />
+
+      {/* Order History Modal */}
+      <OrderHistoryModal
+        isOpen={ordersModalOpen}
+        onClose={() => setOrdersModalOpen(false)}
+      />
+
       {/* Footer */}
       <footer className="border-t border-slate-800 py-6 text-center text-xs text-slate-500">
         ShopSphere &copy; {new Date().getFullYear()} &mdash; Portfolio-Quality Engineering Project
@@ -460,7 +549,9 @@ function DashboardContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <DashboardContent />
+      <CartProvider>
+        <DashboardContent />
+      </CartProvider>
     </AuthProvider>
   );
 }

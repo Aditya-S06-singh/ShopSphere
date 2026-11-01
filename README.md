@@ -84,7 +84,15 @@ Open `http://localhost:5173` in your browser.
   - Rich sample product and category dataset seeded into PostgreSQL 18.
   - Interactive React catalog with filter tabs, instant search, detail modals, and admin inventory tools.
   - 17 backend integration tests passing cleanly.
-- [ ] **Milestone 4**: Shopping Cart & Simulated Payment Checkout
+- [x] **Milestone 4**: Shopping Cart, Order Workflow & Simulated Payment Checkout
+  - User-bound `Cart` and `CartItem` entities with automatic subtotal and line-total calculation.
+  - Cart CRUD REST API: get cart, add item, update quantity, remove item, clear cart.
+  - Transactional checkout engine in `OrderService`: cart validation, stock verification, atomic inventory decrement, and cart clearing.
+  - `SimulatedPaymentService` supporting test tokens (`tok_visa`, `tok_mastercard`, `tok_amex`, `tok_fail`) — zero storage or handling of real card data.
+  - Order entity with lifecycle statuses (`PENDING`, `PAYMENT_CONFIRMED`, `PROCESSING`, `SHIPPED`, `DELIVERED`, `CANCELLED`).
+  - Order cancellation API with automatic inventory restoration.
+  - Slide-out Cart Drawer, simulated checkout modal with card selector, and customer Order History tracking modal.
+  - 31 backend integration tests passing (100% success rate).
 - [ ] **Milestone 5**: Admin Dashboard & Order Management
 - [ ] **Milestone 6**: AI Semantic Search & RAG Assistant
 - [ ] **Milestone 7**: Testing, Production Docker Packaging & Final Portfolio Review

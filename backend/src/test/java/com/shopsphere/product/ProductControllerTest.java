@@ -1,6 +1,9 @@
 package com.shopsphere.product;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.shopsphere.cart.CartItemRepository;
+import com.shopsphere.cart.CartRepository;
+import com.shopsphere.order.OrderRepository;
 import com.shopsphere.product.dto.CreateProductRequest;
 import com.shopsphere.product.dto.UpdateStockRequest;
 import com.shopsphere.security.JwtService;
@@ -46,6 +49,15 @@ class ProductControllerTest {
     private UserRepository userRepository;
 
     @Autowired
+    private CartItemRepository cartItemRepository;
+
+    @Autowired
+    private CartRepository cartRepository;
+
+    @Autowired
+    private OrderRepository orderRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -61,6 +73,10 @@ class ProductControllerTest {
 
     @BeforeEach
     void setUp() {
+        // Delete in FK-safe order: order_items (via orderRepository) → orders → cart_items → carts → products → categories → users
+        orderRepository.deleteAll();
+        cartItemRepository.deleteAll();
+        cartRepository.deleteAll();
         productRepository.deleteAll();
         categoryRepository.deleteAll();
         userRepository.deleteAll();
@@ -218,3 +234,4 @@ class ProductControllerTest {
         assertThat(softDeleted.isActive()).isFalse();
     }
 }
+

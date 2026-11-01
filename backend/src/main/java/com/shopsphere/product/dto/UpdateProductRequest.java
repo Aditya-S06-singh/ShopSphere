@@ -33,3 +33,4 @@ public record UpdateProductRequest(
         Boolean active
 ) {
 }
+

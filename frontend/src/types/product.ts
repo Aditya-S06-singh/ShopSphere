@@ -50,3 +50,4 @@ export interface UpdateProductInput {
   categoryId: number;
   active?: boolean;
 }
+

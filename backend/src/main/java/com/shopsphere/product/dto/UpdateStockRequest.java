@@ -9,3 +9,4 @@ public record UpdateStockRequest(
         Integer stockQuantity
 ) {
 }
+

@@ -17,3 +17,4 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
     boolean existsBySlug(String slug);
 }
+

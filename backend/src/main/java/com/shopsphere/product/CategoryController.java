@@ -31,3 +31,4 @@ public class CategoryController {
         return ResponseEntity.ok(categoryService.getCategoryBySlug(slug));
     }
 }
+

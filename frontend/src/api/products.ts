@@ -47,3 +47,4 @@ export const updateAdminStock = async (id: number, stockQuantity: number): Promi
 export const deleteAdminProduct = async (id: number): Promise<void> => {
   await apiClient.delete(`/admin/products/${id}`);
 };
+
