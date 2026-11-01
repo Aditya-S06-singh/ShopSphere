@@ -100,6 +100,15 @@ Open `http://localhost:5173` in your browser.
   - Business analytics & KPIs endpoint (`GET /api/v1/admin/dashboard/stats`): Total Revenue, Total Orders, Active Orders, Catalog Count, Low-Stock Alerts (&le; 5), and Recent Transactions.
   - Interactive Admin Operations Console in React: Overview KPI cards, real-time Order Fulfillment table with status updater, and live Inventory Watch table with direct stock adjustments.
   - 36 backend integration tests passing (100% success rate).
-- [ ] **Milestone 6**: AI Semantic Search & RAG Assistant
+- [x] **Milestone 6**: AI Semantic Search & RAG Assistant
+  - High-performance `SemanticVectorEngine` implementing cosine similarity, intent synonym expansion, numerical budget parsing (e.g. "under $100"), and English stop-word filtering.
+  - Contextual Retrieval-Augmented Generation (RAG) shopping concierge (`RagShoppingService`):
+    - Retrieves candidate products from live PostgreSQL catalog.
+    - Augments prompt with real-time pricing and stock data.
+    - Supports Google Gemini LLM API (`GEMINI_API_KEY`) with deterministic local RAG concierge fallback when offline.
+  - REST endpoints at `/api/v1/ai/search` and `/api/v1/ai/chat` open to all shoppers.
+  - Interactive React AI UI: Floating "Ask SphereAI" concierge drawer with quick prompt chips, markdown parsing, and embedded product cards with 1-click cart insertion.
+  - Main catalog "AI Semantic Search" toggle with live match % and semantic rationale pills.
+  - 40 backend integration tests passing (100% success rate).
 - [ ] **Milestone 7**: Testing, Production Docker Packaging & Final Portfolio Review
 

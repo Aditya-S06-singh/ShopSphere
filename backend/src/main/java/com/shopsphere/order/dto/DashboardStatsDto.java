@@ -12,3 +12,4 @@ public record DashboardStatsDto(
         List<OrderDto> recentOrders
 ) {
 }
+

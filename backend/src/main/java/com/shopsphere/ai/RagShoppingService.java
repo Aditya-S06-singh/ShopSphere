@@ -1,0 +1,185 @@
+package com.shopsphere.ai;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.shopsphere.ai.dto.*;
+import com.shopsphere.product.Product;
+import com.shopsphere.product.ProductRepository;
+import com.shopsphere.product.dto.ProductDto;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+@Service
+public class RagShoppingService {
+
+    private final ProductRepository productRepository;
+    private final SemanticVectorEngine vectorEngine;
+    private final RestClient restClient;
+    private final ObjectMapper objectMapper;
+
+    @Value("${app.ai.gemini-api-key:}")
+    private String geminiApiKey;
+
+    @Value("${app.ai.gemini-model:gemini-1.5-flash}")
+    private String geminiModel;
+
+    public RagShoppingService(
+            ProductRepository productRepository,
+            SemanticVectorEngine vectorEngine,
+            ObjectMapper objectMapper
+    ) {
+        this.productRepository = productRepository;
+        this.vectorEngine = vectorEngine;
+        this.objectMapper = objectMapper;
+        this.restClient = RestClient.builder().build();
+    }
+
+    /**
+     * Executes Semantic Search across active catalog products.
+     */
+    public AiSearchResponse searchProducts(String query, int limit) {
+        List<Product> allProducts = productRepository.findAll();
+        List<SemanticVectorEngine.ScoredProduct> ranked = vectorEngine.rankProducts(allProducts, query, limit);
+
+        List<AiSearchResultDto> results = ranked.stream()
+                .map(r -> new AiSearchResultDto(
+                        ProductDto.fromEntity(r.product()),
+                        Math.round(r.score() * 100.0) / 100.0,
+                        r.matchReason()
+                ))
+                .toList();
+
+        return new AiSearchResponse(query, results.size(), results);
+    }
+
+    /**
+     * RAG Shopping Assistant pipeline:
+     * 1. Retrieve: semantic retrieval of top matching products.
+     * 2. Augment: inject live product data into the context prompt.
+     * 3. Generate: call Gemini if API key is configured, or use built-in concierge generator.
+     */
+    public AiChatResponse chatWithAssistant(AiChatRequest request) {
+        String query = request.message().trim();
+
+        // 1. Retrieve candidate products
+        List<Product> allProducts = productRepository.findAll();
+        List<SemanticVectorEngine.ScoredProduct> ranked = vectorEngine.rankProducts(allProducts, query, 4);
+
+        List<ProductDto> recommendedDtos = ranked.stream()
+                .map(r -> ProductDto.fromEntity(r.product()))
+                .toList();
+
+        // 2. Generate with Gemini LLM if key is present
+        if (geminiApiKey != null && !geminiApiKey.isBlank()) {
+            try {
+                String llmReply = callGeminiLlm(query, ranked, request.history());
+                if (llmReply != null && !llmReply.isBlank()) {
+                    return new AiChatResponse(llmReply, recommendedDtos, "GEMINI_LLM");
+                }
+            } catch (Exception e) {
+                // Graceful fallback to built-in concierge on network or rate limit errors
+            }
+        }
+
+        // 3. Built-in Deterministic RAG Concierge (zero-dependency, always works)
+        String localReply = generateLocalRagResponse(query, ranked);
+        return new AiChatResponse(localReply, recommendedDtos, "LOCAL_RAG_CONCIERGE");
+    }
+
+    private String callGeminiLlm(
+            String query,
+            List<SemanticVectorEngine.ScoredProduct> ranked,
+            List<ChatMessageDto> history
+    ) throws Exception {
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/" + geminiModel + ":generateContent?key=" + geminiApiKey;
+
+        StringBuilder contextBuilder = new StringBuilder();
+        contextBuilder.append("You are SphereAI, the helpful, polite, and knowledgeable AI shopping assistant for ShopSphere.\n");
+        contextBuilder.append("Here is the live real-time inventory from our PostgreSQL catalog relevant to the customer's query:\n\n");
+
+        if (ranked.isEmpty()) {
+            contextBuilder.append("(No exact catalog products matched the customer query).\n");
+        } else {
+            for (var rp : ranked) {
+                Product p = rp.product();
+                contextBuilder.append(String.format(
+                        "- %s (SKU: %s): Price $%.2f, Stock: %d. Description: %s\n",
+                        p.getName(), p.getSku(), p.getPrice(), p.getStockQuantity(), p.getDescription()
+                ));
+            }
+        }
+
+        contextBuilder.append("\nInstructions:\n");
+        contextBuilder.append("1. Answer the customer's question directly using ONLY the real products provided above.\n");
+        contextBuilder.append("2. Include pricing and stock status when recommending an item.\n");
+        contextBuilder.append("3. Keep responses concise, friendly, and structured in Markdown.\n\n");
+        contextBuilder.append("Customer question: ").append(query);
+
+        Map<String, Object> body = Map.of(
+                "contents", List.of(
+                        Map.of("parts", List.of(
+                                Map.of("text", contextBuilder.toString())
+                        ))
+                )
+        );
+
+        String jsonResponse = restClient.post()
+                .uri(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(body)
+                .retrieve()
+                .body(String.class);
+
+        JsonNode root = objectMapper.readTree(jsonResponse);
+        return root.path("candidates").get(0)
+                .path("content").path("parts").get(0)
+                .path("text").asText();
+    }
+
+    private String generateLocalRagResponse(
+            String query,
+            List<SemanticVectorEngine.ScoredProduct> ranked
+    ) {
+        StringBuilder sb = new StringBuilder();
+
+        if (ranked.isEmpty()) {
+            sb.append("Hello! I searched our current catalog for **\"").append(query).append("\"**, ");
+            sb.append("but I couldn't find an exact match right now.\n\n");
+            sb.append("💡 **Suggestion**: Try searching for keywords like *\"wireless\"*, *\"keyboard\"*, *\"mouse\"*, or *\"headphones\"*, ");
+            sb.append("or browse all items in the catalog above!");
+            return sb.toString();
+        }
+
+        sb.append("Hello! Based on our live catalog, here are the top recommendations matching **\"")
+                .append(query).append("\"**:\n\n");
+
+        for (int i = 0; i < ranked.size(); i++) {
+            Product p = ranked.get(i).product();
+            String reason = ranked.get(i).matchReason();
+
+            sb.append(String.format(
+                    "**%d. %s** — **$%.2f**\n",
+                    i + 1, p.getName(), p.getPrice()
+            ));
+
+            if (p.getStockQuantity() > 0) {
+                sb.append("   • *In Stock* (").append(p.getStockQuantity()).append(" units available)\n");
+            } else {
+                sb.append("   • *Currently Out of Stock*\n");
+            }
+
+            sb.append("   • ").append(p.getDescription()).append("\n");
+            sb.append("   • *Why this fits*: ").append(reason).append("\n\n");
+        }
+
+        sb.append("You can click on any product card below to inspect specifications or add it directly to your shopping cart!");
+        return sb.toString();
+    }
+}

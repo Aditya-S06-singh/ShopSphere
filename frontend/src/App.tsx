@@ -10,6 +10,8 @@ import { CartDrawer } from './components/cart/CartDrawer';
 import { CheckoutModal } from './components/checkout/CheckoutModal';
 import { OrderHistoryModal } from './components/orders/OrderHistoryModal';
 import { AdminDashboardModal } from './components/admin/AdminDashboardModal';
+import { AiChatDrawer } from './components/ai/AiChatDrawer';
+import { fetchAiSemanticSearch } from './api/ai';
 import { Category, Product } from './types/product';
 import { Order } from './types/order';
 import { 
@@ -74,6 +76,9 @@ function DashboardContent() {
   const [checkoutModalOpen, setCheckoutModalOpen] = useState<boolean>(false);
   const [ordersModalOpen, setOrdersModalOpen] = useState<boolean>(false);
   const [adminDashboardOpen, setAdminDashboardOpen] = useState<boolean>(false);
+  const [aiChatDrawerOpen, setAiChatDrawerOpen] = useState<boolean>(false);
+  const [aiSearchEnabled, setAiSearchEnabled] = useState<boolean>(false);
+  const [semanticMatches, setSemanticMatches] = useState<Record<number, string>>({});
   const [lastPlacedOrder, setLastPlacedOrder] = useState<Order | null>(null);
 
   // Check backend health
@@ -103,24 +108,36 @@ function DashboardContent() {
   const loadProducts = useCallback(async () => {
     setLoadingProducts(true);
     try {
-      const params: ProductQueryParams = {
-        page: 0,
-        size: 24,
-        sortBy,
-        sortDir,
-      };
-      if (selectedCategory) params.categoryId = selectedCategory;
-      if (searchQuery.trim()) params.search = searchQuery.trim();
-      if (inStockOnly) params.inStockOnly = true;
+      if (aiSearchEnabled && searchQuery.trim()) {
+        const aiRes = await fetchAiSemanticSearch(searchQuery.trim(), 24);
+        const productsList = aiRes.results.map((r) => r.product);
+        const matchMap: Record<number, string> = {};
+        aiRes.results.forEach((r) => {
+          matchMap[r.product.id] = `${Math.round(r.relevanceScore * 100)}% match • ${r.matchReason}`;
+        });
+        setSemanticMatches(matchMap);
+        setProducts(productsList);
+      } else {
+        setSemanticMatches({});
+        const params: ProductQueryParams = {
+          page: 0,
+          size: 24,
+          sortBy,
+          sortDir,
+        };
+        if (selectedCategory) params.categoryId = selectedCategory;
+        if (searchQuery.trim()) params.search = searchQuery.trim();
+        if (inStockOnly) params.inStockOnly = true;
 
-      const data = await fetchProducts(params);
-      setProducts(data.content);
+        const data = await fetchProducts(params);
+        setProducts(data.content);
+      }
     } catch (e) {
       console.error('Failed to load products', e);
     } finally {
       setLoadingProducts(false);
     }
-  }, [selectedCategory, searchQuery, inStockOnly, sortBy, sortDir]);
+  }, [selectedCategory, searchQuery, inStockOnly, sortBy, sortDir, aiSearchEnabled]);
 
   useEffect(() => {
     checkStatus();
@@ -364,8 +381,8 @@ function DashboardContent() {
       <section className="relative overflow-hidden py-12 border-b border-slate-800 bg-gradient-to-b from-slate-900 via-slate-800/40 to-slate-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-medium">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Milestone 4: Shopping Cart, Order Workflow & Simulated Payments</span>
+            <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-spin" style={{ animationDuration: '4s' }} />
+            <span>Milestone 6: AI Semantic Search & RAG Shopping Assistant Active</span>
           </div>
           <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white max-w-3xl mx-auto">
             Portfolio-Quality E-Commerce Platform
@@ -386,15 +403,33 @@ function DashboardContent() {
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search products by title, SKU, or keyword..."
+              placeholder={aiSearchEnabled ? "Describe what you need in natural language (e.g., 'ergonomic typing gear under $100')..." : "Search products by title, SKU, or keyword..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-900/80 border border-slate-700 rounded-xl pl-10 pr-4 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className={`w-full bg-slate-900/80 border rounded-xl pl-10 pr-4 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 transition-all ${
+                aiSearchEnabled
+                  ? 'border-purple-500/80 focus:ring-purple-500 shadow-sm shadow-purple-500/20'
+                  : 'border-slate-700 focus:ring-indigo-500'
+              }`}
             />
           </div>
 
           {/* Filters & Actions */}
           <div className="flex flex-wrap items-center gap-3">
+            {/* AI Semantic Search Toggle */}
+            <button
+              onClick={() => setAiSearchEnabled(!aiSearchEnabled)}
+              title="Toggle AI Semantic Search"
+              className={`inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-all border ${
+                aiSearchEnabled
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white border-purple-400/50 shadow-md shadow-purple-600/30'
+                  : 'bg-slate-900/60 text-slate-300 border-slate-700 hover:bg-slate-900'
+              }`}
+            >
+              <Sparkles className={`w-3.5 h-3.5 ${aiSearchEnabled ? 'text-amber-300 animate-spin' : 'text-purple-400'}`} style={{ animationDuration: '4s' }} />
+              <span>{aiSearchEnabled ? 'AI Vector Search ON' : 'AI Semantic Search'}</span>
+            </button>
+
             {/* In-Stock Toggle */}
             <label className="flex items-center space-x-2 text-xs text-slate-300 bg-slate-900/60 px-3 py-2 rounded-xl border border-slate-700 cursor-pointer hover:bg-slate-900">
               <input
@@ -496,14 +531,21 @@ function DashboardContent() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {products.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onSelect={(p) => setSelectedProduct(p)}
-                onUpdateStock={handleUpdateStock}
-                onDelete={handleDeleteProduct}
-                onAddToCart={handleAddToCart}
-              />
+              <div key={product.id} className="flex flex-col space-y-1.5">
+                {semanticMatches[product.id] && (
+                  <div className="bg-purple-950/80 border border-purple-500/40 text-purple-300 px-2.5 py-1 rounded-lg text-[10px] font-mono flex items-center space-x-1.5 shadow-sm">
+                    <Sparkles className="w-3 h-3 text-amber-300 flex-shrink-0" />
+                    <span className="truncate">{semanticMatches[product.id]}</span>
+                  </div>
+                )}
+                <ProductCard
+                  product={product}
+                  onSelect={(p) => setSelectedProduct(p)}
+                  onUpdateStock={handleUpdateStock}
+                  onDelete={handleDeleteProduct}
+                  onAddToCart={handleAddToCart}
+                />
+              </div>
             ))}
           </div>
         )}
@@ -566,6 +608,24 @@ function DashboardContent() {
           }}
         />
       )}
+
+      {/* Floating Ask SphereAI Button */}
+      <button
+        onClick={() => setAiChatDrawerOpen(true)}
+        className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 hover:from-indigo-600 hover:to-pink-600 text-white font-semibold px-4 py-3 rounded-full shadow-2xl shadow-purple-600/40 flex items-center space-x-2 transition-transform hover:scale-105 cursor-pointer border border-white/20"
+        title="Open AI Shopping Assistant"
+      >
+        <Sparkles className="w-4 h-4 text-amber-300 animate-spin" style={{ animationDuration: '4s' }} />
+        <span className="text-xs tracking-wide">Ask SphereAI</span>
+      </button>
+
+      {/* SphereAI RAG Shopping Assistant Drawer */}
+      <AiChatDrawer
+        isOpen={aiChatDrawerOpen}
+        onClose={() => setAiChatDrawerOpen(false)}
+        onSelectProduct={(p) => setSelectedProduct(p)}
+        onAddToCart={handleAddToCart}
+      />
 
       {/* Footer */}
       <footer className="border-t border-slate-800 py-6 text-center text-xs text-slate-500">

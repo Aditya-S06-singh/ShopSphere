@@ -25,3 +25,4 @@ export async function updateAdminOrderStatus(
   const response = await apiClient.patch<Order>(`/admin/orders/${orderId}/status`, { status });
   return response.data;
 }
+

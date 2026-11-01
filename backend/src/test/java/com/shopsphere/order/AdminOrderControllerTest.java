@@ -172,3 +172,4 @@ class AdminOrderControllerTest {
         assertThat(restocked.getStockQuantity()).isEqualTo(10);
     }
 }
+

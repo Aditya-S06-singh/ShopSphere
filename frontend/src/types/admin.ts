@@ -12,3 +12,4 @@ export interface DashboardStats {
 export interface UpdateOrderStatusPayload {
   status: OrderStatus;
 }
+

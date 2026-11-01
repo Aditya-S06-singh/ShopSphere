@@ -49,6 +49,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/health/**").permitAll()
                         .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/products/**", "/api/v1/categories/**").permitAll()
+                        .requestMatchers("/api/v1/ai/**").permitAll()
                         .requestMatchers("/api/v1/admin/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/api/v1/cart/**", "/api/v1/orders/**").authenticated()
                         .anyRequest().authenticated()

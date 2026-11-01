@@ -4,6 +4,35 @@ All notable changes to the ShopSphere platform are documented in this file by mi
 
 ---
 
+## [Milestone 6] - 2026-11-01
+### AI Semantic Search & RAG Shopping Assistant
+
+#### Backend
+- **Semantic Vector Engine (`com.shopsphere.ai.SemanticVectorEngine`)**:
+  - Implemented tokenization, English stop-word filtering, numerical price boundary parsing (e.g. `under $100`), and domain intent synonym mapping (developer, gaming, audio, ergonomic, portable, etc.).
+  - Added cosine similarity calculation and match rationale generation.
+- **RAG Shopping Assistant (`com.shopsphere.ai.RagShoppingService`)**:
+  - 3-step RAG pipeline: Candidate retrieval from live PostgreSQL inventory $\to$ Context augmentation with real-time stock and pricing $\to$ LLM generation.
+  - Native integration with Google Gemini (`gemini-1.5-flash`) via Spring's `RestClient` with automatic fallback to high-quality deterministic local RAG synthesis when offline or without an API key.
+- **REST Endpoints (`com.shopsphere.ai.AiController`)**:
+  - `GET /api/v1/ai/search?query=...&limit=...`: Vector similarity search.
+  - `POST /api/v1/ai/chat`: Interactive conversational shopping assistant.
+  - Configured public access in `SecurityConfig.java`.
+- **Tests**:
+  - `AiControllerTest` (4 tests) verifying semantic intent matching, budget cap enforcement, RAG product recommendation formatting, and polite handling for unmatched queries.
+  - Total backend tests: **40 passing cleanly (0 failures, 0 errors)**.
+
+#### Frontend
+- Added `frontend/src/types/ai.ts` and `frontend/src/api/ai.ts`.
+- Built `AiChatDrawer.tsx`:
+  - Conversational message stream with quick prompt chips.
+  - RAG-injected live product cards showing pricing, stock availability, and direct "Add to Cart" triggers.
+- Integrated AI Semantic Search Toggle into the main catalog toolbar with real-time similarity badges (`X% match • ...`).
+- Added floating **"Ask SphereAI"** gradient launcher button in [`App.tsx`](file:///c:/dev/ShopSphere/frontend/src/App.tsx).
+- Verified production build: `npm.cmd run build` passed cleanly.
+
+---
+
 ## [Milestone 5] - 2026-11-01
 ### Admin Dashboard & Order Management
 
