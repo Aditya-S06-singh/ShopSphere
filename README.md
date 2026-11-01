@@ -93,7 +93,13 @@ Open `http://localhost:5173` in your browser.
   - Order cancellation API with automatic inventory restoration.
   - Slide-out Cart Drawer, simulated checkout modal with card selector, and customer Order History tracking modal.
   - 31 backend integration tests passing (100% success rate).
-- [ ] **Milestone 5**: Admin Dashboard & Order Management
+- [x] **Milestone 5**: Admin Dashboard & Order Management
+  - Admin Order Management endpoints (`GET /api/v1/admin/orders`, `PATCH /api/v1/admin/orders/{id}/status`) guarded by `ROLE_ADMIN`.
+  - Full order lifecycle transitions: `PENDING` -> `PAYMENT_CONFIRMED` -> `PROCESSING` -> `SHIPPED` -> `DELIVERED` -> `CANCELLED`.
+  - Automatic inventory restoration when an admin cancels an order; stock re-check when reopening.
+  - Business analytics & KPIs endpoint (`GET /api/v1/admin/dashboard/stats`): Total Revenue, Total Orders, Active Orders, Catalog Count, Low-Stock Alerts (&le; 5), and Recent Transactions.
+  - Interactive Admin Operations Console in React: Overview KPI cards, real-time Order Fulfillment table with status updater, and live Inventory Watch table with direct stock adjustments.
+  - 36 backend integration tests passing (100% success rate).
 - [ ] **Milestone 6**: AI Semantic Search & RAG Assistant
 - [ ] **Milestone 7**: Testing, Production Docker Packaging & Final Portfolio Review
 

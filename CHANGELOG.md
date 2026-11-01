@@ -4,6 +4,34 @@ All notable changes to the ShopSphere platform are documented in this file by mi
 
 ---
 
+## [Milestone 5] - 2026-11-01
+### Admin Dashboard & Order Management
+
+#### Backend
+- **Admin Order & Analytics (`com.shopsphere.order`)**:
+  - Implemented `AdminOrderController` guarded by `@PreAuthorize("hasAuthority('ROLE_ADMIN')")`.
+  - Added `GET /api/v1/admin/orders`: paginated orders with optional `OrderStatus` filtering.
+  - Added `PATCH /api/v1/admin/orders/{id}/status`: lifecycle state transitions with automatic inventory replenishment on `CANCELLED` and stock validation on reopen.
+  - Added `GET /api/v1/admin/dashboard/stats`: aggregates platform metrics including total revenue (excluding cancelled), total order volume, active orders requiring fulfillment, active product count, low-stock alerts (&le; 5), and 5 most recent orders.
+- **Repository Enhancements**:
+  - Added `sumTotalRevenue()`, `countByStatusIn()`, `findTop5ByOrderByCreatedAtDesc()`, and status-filtered pagination in `OrderRepository`.
+  - Added `countActiveProducts()` and `countLowStockProducts()` in `ProductRepository`.
+- **Tests**:
+  - Created `AdminOrderControllerTest` verifying KPI calculations, order status transitions, automated inventory restoration, and 403 Forbidden enforcement for non-admin accounts.
+  - Total test suite: **36 tests passing cleanly (0 failures, 0 errors)**.
+
+#### Frontend
+- Added `frontend/src/types/admin.ts` with `DashboardStats` interface.
+- Created `frontend/src/api/admin.ts` for dashboard KPIs, order fulfillment queries, and status updates.
+- Built `AdminDashboardModal.tsx`:
+  - **Overview & KPIs Tab**: 5 metric cards (Revenue, Volume, Active Orders, Catalog Items, Low-Stock Warnings) and recent transactions table.
+  - **Order Fulfillment Tab**: status filter chips, order details, and quick status change selector.
+  - **Inventory Watch Tab**: stock level badges, low stock alert banners, inline stock quantity editor, and 1-click product creator launch.
+- Integrated Admin Console launcher pill into `App.tsx` header for `ROLE_ADMIN` users.
+- Production build verified: `npm.cmd run build` passed cleanly.
+
+---
+
 ## [Milestone 4] - 2026-11-01
 ### Shopping Cart, Order Workflow & Simulated Payment Checkout
 
@@ -77,3 +105,4 @@ All notable changes to the ShopSphere platform are documented in this file by mi
 - React 18, TypeScript 5.6, Vite 6, and Tailwind CSS 3.4 frontend dashboard.
 - System diagnostics probe (`/api/v1/health`) displaying live DB ping and JVM runtime metadata.
 - Context load tests passing.
+

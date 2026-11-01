@@ -9,6 +9,7 @@ import { AddProductModal } from './components/admin/AddProductModal';
 import { CartDrawer } from './components/cart/CartDrawer';
 import { CheckoutModal } from './components/checkout/CheckoutModal';
 import { OrderHistoryModal } from './components/orders/OrderHistoryModal';
+import { AdminDashboardModal } from './components/admin/AdminDashboardModal';
 import { Category, Product } from './types/product';
 import { Order } from './types/order';
 import { 
@@ -34,7 +35,8 @@ import {
   PackageOpen,
   Filter,
   ReceiptText,
-  CheckCircle2
+  CheckCircle2,
+  LayoutDashboard
 } from 'lucide-react';
 
 function DashboardContent() {
@@ -71,6 +73,7 @@ function DashboardContent() {
   const [cartDrawerOpen, setCartDrawerOpen] = useState<boolean>(false);
   const [checkoutModalOpen, setCheckoutModalOpen] = useState<boolean>(false);
   const [ordersModalOpen, setOrdersModalOpen] = useState<boolean>(false);
+  const [adminDashboardOpen, setAdminDashboardOpen] = useState<boolean>(false);
   const [lastPlacedOrder, setLastPlacedOrder] = useState<Order | null>(null);
 
   // Check backend health
@@ -212,6 +215,18 @@ function DashboardContent() {
               >
                 <ReceiptText className="w-4 h-4 text-indigo-400" />
                 <span className="hidden md:inline">Orders</span>
+              </button>
+            )}
+
+            {/* Admin Console Button */}
+            {isAdmin && (
+              <button
+                onClick={() => setAdminDashboardOpen(true)}
+                title="Admin Control Center"
+                className="px-3 py-2 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/40 flex items-center space-x-1.5 text-xs font-semibold cursor-pointer shadow-md transition-colors"
+              >
+                <LayoutDashboard className="w-3.5 h-3.5 text-purple-400" />
+                <span className="hidden sm:inline">Admin Console</span>
               </button>
             )}
 
@@ -537,6 +552,20 @@ function DashboardContent() {
         isOpen={ordersModalOpen}
         onClose={() => setOrdersModalOpen(false)}
       />
+
+      {/* Admin Dashboard Operations Console */}
+      {isAdmin && (
+        <AdminDashboardModal
+          isOpen={adminDashboardOpen}
+          onClose={() => setAdminDashboardOpen(false)}
+          products={products}
+          onUpdateStock={handleUpdateStock}
+          onOpenAddProduct={() => {
+            setAdminDashboardOpen(false);
+            setAddProductModalOpen(true);
+          }}
+        />
+      )}
 
       {/* Footer */}
       <footer className="border-t border-slate-800 py-6 text-center text-xs text-slate-500">

@@ -13,6 +13,8 @@ public record OrderDto(
         BigDecimal totalAmount,
         String shippingAddress,
         String paymentReference,
+        String customerEmail,
+        String customerName,
         List<OrderItemDto> items,
         Instant createdAt,
         Instant updatedAt

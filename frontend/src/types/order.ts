@@ -23,6 +23,8 @@ export interface Order {
   totalAmount: number;
   shippingAddress: string;
   paymentReference: string | null;
+  customerEmail?: string;
+  customerName?: string;
   items: OrderItem[];
   createdAt: string;
   updatedAt: string;
@@ -41,3 +43,4 @@ export interface PagedOrders {
   totalPages: number;
   last: boolean;
 }
+
