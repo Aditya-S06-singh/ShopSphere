@@ -29,7 +29,6 @@ public class CartService {
         this.userRepository = userRepository;
     }
 
-    @Transactional(readOnly = true)
     public CartDto getCartDto(Long userId) {
         Cart cart = getOrCreateCart(userId);
         return toDto(cart);

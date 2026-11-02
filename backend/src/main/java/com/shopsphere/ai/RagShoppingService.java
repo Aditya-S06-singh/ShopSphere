@@ -48,8 +48,11 @@ public class RagShoppingService {
         if (this.restClient == null) {
             synchronized (this) {
                 if (this.restClient == null) {
+                    var requestFactory = new org.springframework.http.client.SimpleClientHttpRequestFactory();
+                    requestFactory.setConnectTimeout(java.time.Duration.ofMillis(4000));
+                    requestFactory.setReadTimeout(java.time.Duration.ofMillis(8000));
                     this.restClient = RestClient.builder()
-                            .requestFactory(new org.springframework.http.client.SimpleClientHttpRequestFactory())
+                            .requestFactory(requestFactory)
                             .build();
                 }
             }
@@ -116,7 +119,7 @@ public class RagShoppingService {
         if (geminiModel != null && !geminiModel.isBlank()) {
             candidateModels.add(geminiModel.trim());
         }
-        for (String m : List.of("gemini-3.8-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite")) {
+        for (String m : List.of("gemini-3.5-flash-lite", "gemini-3.5-flash", "gemini-3.8-flash")) {
             if (!candidateModels.contains(m)) {
                 candidateModels.add(m);
             }
