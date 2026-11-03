@@ -50,8 +50,8 @@ public class RagShoppingService {
             synchronized (this) {
                 if (this.restClient == null) {
                     var requestFactory = new org.springframework.http.client.SimpleClientHttpRequestFactory();
-                    requestFactory.setConnectTimeout(java.time.Duration.ofMillis(4000));
-                    requestFactory.setReadTimeout(java.time.Duration.ofMillis(8000));
+                    requestFactory.setConnectTimeout(java.time.Duration.ofMillis(5000));
+                    requestFactory.setReadTimeout(java.time.Duration.ofMillis(35000));
                     this.restClient = RestClient.builder()
                             .requestFactory(requestFactory)
                             .build();
@@ -120,7 +120,7 @@ public class RagShoppingService {
         if (geminiModel != null && !geminiModel.isBlank()) {
             candidateModels.add(geminiModel.trim());
         }
-        for (String m : List.of("gemini-3.5-flash-lite", "gemini-3.5-flash", "gemini-3.8-flash")) {
+        for (String m : List.of("gemini-3.5-flash-lite", "gemini-3.5-flash")) {
             if (!candidateModels.contains(m)) {
                 candidateModels.add(m);
             }
@@ -144,8 +144,8 @@ public class RagShoppingService {
 
         contextBuilder.append("\nInstructions:\n");
         contextBuilder.append("1. Answer the customer's question directly using ONLY the real products provided above.\n");
-        contextBuilder.append("2. Include pricing and stock status when recommending an item.\n");
-        contextBuilder.append("3. Keep responses concise, friendly, and structured in Markdown.\n\n");
+        contextBuilder.append("2. Include pricing (in Rs.) and stock status when recommending an item.\n");
+        contextBuilder.append("3. Keep responses concise, friendly, and under 80 words in Markdown.\n\n");
         contextBuilder.append("Customer question: ").append(query);
 
         Map<String, Object> body = Map.of(
@@ -153,6 +153,10 @@ public class RagShoppingService {
                         Map.of("parts", List.of(
                                 Map.of("text", contextBuilder.toString())
                         ))
+                ),
+                "generationConfig", Map.of(
+                        "maxOutputTokens", 250,
+                        "temperature", 0.6
                 )
         );
 
