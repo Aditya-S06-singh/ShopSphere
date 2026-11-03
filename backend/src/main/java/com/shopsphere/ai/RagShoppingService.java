@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -159,12 +160,19 @@ public class RagShoppingService {
         for (String model : candidateModels) {
             String url = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + geminiApiKey;
             try {
-                String jsonResponse = getRestClient().post()
+                byte[] responseBytes = getRestClient().post()
                         .uri(url)
                         .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON, MediaType.ALL)
                         .body(body)
                         .retrieve()
-                        .body(String.class);
+                        .body(byte[].class);
+
+                if (responseBytes == null || responseBytes.length == 0) {
+                    continue;
+                }
+
+                String jsonResponse = new String(responseBytes, StandardCharsets.UTF_8);
 
                 JsonNode root = objectMapper.readTree(jsonResponse);
                 String reply = root.path("candidates").get(0)
